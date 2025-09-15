@@ -1,0 +1,74 @@
+﻿using DnDAgency.Domain.Entities;
+using DnDAgency.Domain.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using ApplicationDbContext = DnDAgency.Infrastructure.Data.ApplicationDbContext;
+
+namespace DnDAgency.Infrastructure.Repositories;
+
+public class SlotRepository : GenericRepository<Slot>, ISlotRepository
+{
+    public SlotRepository(ApplicationDbContext context) : base(context) { }
+
+    public override async Task<Slot?> GetByIdAsync(Guid id)
+    {
+        return await _dbSet
+            .Include(s => s.Campaign)
+                .ThenInclude(c => c.Master)
+            .Include(s => s.Bookings)
+                .ThenInclude(b => b.User)
+            .FirstOrDefaultAsync(s => s.Id == id);
+    }
+
+    public async Task<List<Slot>> GetByCampaignIdAsync(Guid campaignId)
+    {
+        return await _dbSet
+            .Include(s => s.Campaign)
+            .Include(s => s.Bookings)
+                .ThenInclude(b => b.User)
+            .Where(s => s.CampaignId == campaignId)
+            .OrderBy(s => s.StartTime)
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
+
+    public async Task<List<Slot>> GetAvailableSlotsByCampaignIdAsync(Guid campaignId)
+    {
+        var now = DateTime.UtcNow;
+        return await _dbSet
+            .Include(s => s.Bookings)
+            .Include(s => s.Campaign) // чтобы получить MaxPlayers
+            .Where(s => s.CampaignId == campaignId &&
+                        s.StartTime > now &&
+                        s.Bookings.Count < s.Campaign.MaxPlayers)
+            .OrderBy(s => s.StartTime)
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
+    public async Task<List<Slot>> GetUserSlotsAsync(Guid userId)
+    {
+        return await _dbSet
+            .Include(s => s.Campaign)
+                .ThenInclude(c => c.Master)
+            .Include(s => s.Bookings.Where(b => b.UserId == userId))
+            .Where(s => s.Bookings.Any(b => b.UserId == userId))
+            .OrderBy(s => s.StartTime)
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
+    // Если у тебя планируются новые методы для будущих слотов
+    public async Task<List<Slot>> GetUpcomingSlotsAsync()
+    {
+        var now = DateTime.UtcNow;
+        return await _dbSet
+            .Include(s => s.Campaign)
+                .ThenInclude(c => c.Master)
+            .Include(s => s.Bookings)
+            .Where(s => s.StartTime > now)
+            .OrderBy(s => s.StartTime)
+            .AsNoTracking()
+            .ToListAsync();
+    }
+}
