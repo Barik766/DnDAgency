@@ -15,7 +15,7 @@ public class BookingRepository : GenericRepository<Booking>, IBookingRepository
             .Include(b => b.User)
             .Include(b => b.Slot)
                 .ThenInclude(s => s.Campaign)
-                    .ThenInclude(c => c.Master)
+                    .ThenInclude(c => c.Masters) // коллекция мастеров
             .FirstOrDefaultAsync(b => b.Id == id);
     }
 
@@ -25,7 +25,7 @@ public class BookingRepository : GenericRepository<Booking>, IBookingRepository
             .Include(b => b.User)
             .Include(b => b.Slot)
                 .ThenInclude(s => s.Campaign)
-                    .ThenInclude(c => c.Master)
+                    .ThenInclude(c => c.Masters)
             .Where(b => b.UserId == userId)
             .OrderByDescending(b => b.CreatedAt)
             .AsNoTracking()

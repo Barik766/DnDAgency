@@ -88,20 +88,8 @@ namespace DnDAgency.Api.Controllers
             {
                 var role = GetCurrentUserRole();
                 var userId = GetCurrentUserId();
-                Guid masterId;
 
-                if (role == "Admin")
-                {
-                    if (request.MasterId == null)
-                        return BadRequest(new { message = "Admin must specify MasterId" });
-                    masterId = request.MasterId.Value;
-                }
-                else
-                {
-                    masterId = await GetCurrentMasterIdAsync();
-                }
-
-                var campaign = await _campaignService.CreateAsync(request, masterId);
+                var campaign = await _campaignService.CreateAsync(request, userId, role);
                 return CreatedAtAction(nameof(GetById), new { id = campaign.Id }, campaign);
             }
             catch (KeyNotFoundException ex)
@@ -122,16 +110,14 @@ namespace DnDAgency.Api.Controllers
             {
                 var role = GetCurrentUserRole();
                 var userId = GetCurrentUserId();
-                Guid? masterId = role == "Master" ? await GetCurrentMasterIdAsync() : null;
 
-                var campaign = await _campaignService.UpdateAsync(id, request, userId, role, masterId);
+                var campaign = await _campaignService.UpdateAsync(id, request, userId, role);
                 return Ok(campaign);
             }
             catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
             catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
             catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
         }
-
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "Master,Admin")]
@@ -141,9 +127,8 @@ namespace DnDAgency.Api.Controllers
             {
                 var role = GetCurrentUserRole();
                 var userId = GetCurrentUserId();
-                Guid? masterId = role == "Master" ? await GetCurrentMasterIdAsync() : null;
 
-                await _campaignService.DeleteAsync(id, userId, role, masterId);
+                await _campaignService.DeleteAsync(id, userId, role);
                 return NoContent();
             }
             catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
@@ -159,9 +144,8 @@ namespace DnDAgency.Api.Controllers
             {
                 var role = GetCurrentUserRole();
                 var userId = GetCurrentUserId();
-                Guid? masterId = role == "Master" ? await GetCurrentMasterIdAsync() : null;
 
-                var campaign = await _campaignService.ToggleStatusAsync(id, userId, role, masterId);
+                var campaign = await _campaignService.ToggleStatusAsync(id, userId, role);
                 return Ok(campaign);
             }
             catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
@@ -176,9 +160,8 @@ namespace DnDAgency.Api.Controllers
             {
                 var role = GetCurrentUserRole();
                 var userId = GetCurrentUserId();
-                Guid? masterId = role == "Master" ? await GetCurrentMasterIdAsync() : null;
 
-                var slot = await _campaignService.AddSlotToCampaignAsync(id, request.StartTime, userId, role, masterId);
+                var slot = await _campaignService.AddSlotToCampaignAsync(id, request.StartTime, userId, role);
                 return CreatedAtAction(nameof(GetSlots), new { id }, slot);
             }
             catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
@@ -194,9 +177,8 @@ namespace DnDAgency.Api.Controllers
             {
                 var role = GetCurrentUserRole();
                 var userId = GetCurrentUserId();
-                Guid? masterId = role == "Master" ? await GetCurrentMasterIdAsync() : null;
 
-                await _campaignService.RemoveSlotFromCampaignAsync(campaignId, slotId, userId, role, masterId);
+                await _campaignService.RemoveSlotFromCampaignAsync(campaignId, slotId, userId, role);
                 return NoContent();
             }
             catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
@@ -217,15 +199,6 @@ namespace DnDAgency.Api.Controllers
         private string GetCurrentUserRole()
         {
             return User.FindFirst(ClaimTypes.Role)?.Value ?? "Master";
-        }
-
-        private async Task<Guid> GetCurrentMasterIdAsync()
-        {
-            var userId = GetCurrentUserId();
-            var master = await _masterRepository.GetByUserIdAsync(userId);
-            if (master == null)
-                throw new KeyNotFoundException("Master not found");
-            return master.Id;
         }
     }
 

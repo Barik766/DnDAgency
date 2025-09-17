@@ -4,6 +4,9 @@ namespace DnDAgency.Domain.Interfaces;
 
 public interface ICampaignRepository : IRepository<Campaign>
 {
+    Task SaveChangesAsync();
+    Task UpdateCampaignTagsAsync(Guid campaignId, List<string> tagNames);
+    Task<Campaign?> GetByIdForUpdateAsync(Guid id);
     Task<List<Campaign>> GetActiveCampaignsAsync();
     Task<List<Campaign>> GetByMasterIdAsync(Guid masterId);
 }

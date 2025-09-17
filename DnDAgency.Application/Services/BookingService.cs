@@ -110,7 +110,7 @@ namespace DnDAgency.Application.Services
                     Id = booking.User.Id,
                     Username = booking.User.Username,
                     Email = booking.User.Email,
-                    Role = booking.User.Role,
+                    Role = booking.User.Role.ToString(),
                     IsMaster = booking.User.IsMaster,
                     IsAdmin = booking.User.IsAdmin
                 },

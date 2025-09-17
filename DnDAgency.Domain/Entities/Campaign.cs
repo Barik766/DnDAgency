@@ -5,8 +5,8 @@
         public Guid Id { get; private set; } = Guid.NewGuid();
         public string Title { get; private set; }
         public string Description { get; private set; }
-        public Guid MasterId { get; private set; }
-        public Master Master { get; private set; }
+        public List<Master> Masters { get; private set; } = new();
+
         public decimal Price { get; private set; }
 
         public string ImageUrl { get; private set; }
@@ -26,31 +26,33 @@
         private Campaign() { } // EF Core
 
         public Campaign(
-            string title,
-            string description,
-            Guid masterId,
-            decimal price,
-            string imageUrl,
-            int level,
-            int maxPlayers = 8,
-            int? durationHours = null)
-        {
-            ValidateTitle(title);
-            ValidateDescription(description);
-            ValidatePrice(price);
-            ValidateImageUrl(imageUrl);
-            ValidateLevel(level);
-            ValidateMaxPlayers(maxPlayers);
+        string title,
+        string description,
+        decimal price,
+        string imageUrl,
+        int level,
+        int maxPlayers = 8,
+        int? durationHours = null,
+        List<Master>? masters = null)
+            {
+                ValidateTitle(title);
+                ValidateDescription(description);
+                ValidatePrice(price);
+                ValidateImageUrl(imageUrl);
+                ValidateLevel(level);
+                ValidateMaxPlayers(maxPlayers);
 
-            Title = title;
-            Description = description;
-            MasterId = masterId;
-            Price = price;
-            ImageUrl = imageUrl;
-            Level = level;
-            MaxPlayers = maxPlayers;
-            DurationHours = durationHours;
-        }
+                Title = title;
+                Description = description;
+                Price = price;
+                ImageUrl = imageUrl;
+                Level = level;
+                MaxPlayers = maxPlayers;
+                DurationHours = durationHours;
+
+                Masters = masters ?? new List<Master>();
+            }
+
 
         public void Update(
             string title,

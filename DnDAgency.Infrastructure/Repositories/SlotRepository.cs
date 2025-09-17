@@ -13,7 +13,7 @@ public class SlotRepository : GenericRepository<Slot>, ISlotRepository
     {
         return await _dbSet
             .Include(s => s.Campaign)
-                .ThenInclude(c => c.Master)
+                .ThenInclude(c => c.Masters) 
             .Include(s => s.Bookings)
                 .ThenInclude(b => b.User)
             .FirstOrDefaultAsync(s => s.Id == id);
@@ -23,6 +23,7 @@ public class SlotRepository : GenericRepository<Slot>, ISlotRepository
     {
         return await _dbSet
             .Include(s => s.Campaign)
+                .ThenInclude(c => c.Masters)
             .Include(s => s.Bookings)
                 .ThenInclude(b => b.User)
             .Where(s => s.CampaignId == campaignId)
@@ -31,13 +32,12 @@ public class SlotRepository : GenericRepository<Slot>, ISlotRepository
             .ToListAsync();
     }
 
-
     public async Task<List<Slot>> GetAvailableSlotsByCampaignIdAsync(Guid campaignId)
     {
         var now = DateTime.UtcNow;
         return await _dbSet
             .Include(s => s.Bookings)
-            .Include(s => s.Campaign) // чтобы получить MaxPlayers
+            .Include(s => s.Campaign)
             .Where(s => s.CampaignId == campaignId &&
                         s.StartTime > now &&
                         s.Bookings.Count < s.Campaign.MaxPlayers)
@@ -50,7 +50,7 @@ public class SlotRepository : GenericRepository<Slot>, ISlotRepository
     {
         return await _dbSet
             .Include(s => s.Campaign)
-                .ThenInclude(c => c.Master)
+                .ThenInclude(c => c.Masters)
             .Include(s => s.Bookings.Where(b => b.UserId == userId))
             .Where(s => s.Bookings.Any(b => b.UserId == userId))
             .OrderBy(s => s.StartTime)
@@ -58,13 +58,12 @@ public class SlotRepository : GenericRepository<Slot>, ISlotRepository
             .ToListAsync();
     }
 
-    // Если у тебя планируются новые методы для будущих слотов
     public async Task<List<Slot>> GetUpcomingSlotsAsync()
     {
         var now = DateTime.UtcNow;
         return await _dbSet
             .Include(s => s.Campaign)
-                .ThenInclude(c => c.Master)
+                .ThenInclude(c => c.Masters)
             .Include(s => s.Bookings)
             .Where(s => s.StartTime > now)
             .OrderBy(s => s.StartTime)

@@ -8,7 +8,7 @@ namespace DnDAgency.Application.DTOs.UsersDTO
         public Guid Id { get; set; }
         public string Username { get; set; } = null!;
         public string Email { get; set; } = null!;
-        public UserRole Role { get; set; }
+        public string Role { get; set; } = null!;
         public bool IsMaster { get; set; }
         public bool IsAdmin { get; set; }
         public bool IsActive { get; set; }

@@ -26,7 +26,6 @@ namespace DnDAgency.Application.Services
         }
 
         // --- Получение данных ---
-
         public async Task<List<CampaignDto>> GetAllAsync()
         {
             var campaigns = await _campaignRepository.GetActiveCampaignsAsync();
@@ -43,88 +42,121 @@ namespace DnDAgency.Application.Services
         }
 
         // --- Создание кампании ---
-
-        public async Task<CampaignDto> CreateAsync(CreateCampaignDto dto, Guid masterId)
+        public async Task<CampaignDto> CreateAsync(CreateCampaignDto dto, Guid? currentUserId = null, string role = "Master")
         {
-            var master = await _masterRepository.GetByIdAsync(masterId);
-            if (master == null)
-                throw new KeyNotFoundException("Master not found");
+            List<Master> masters = new List<Master>();
+
+            if (role == "Master" && currentUserId.HasValue)
+            {
+                var master = await _masterRepository.GetByIdAsync(currentUserId.Value);
+                if (master == null)
+                    throw new KeyNotFoundException("Master not found");
+
+                masters.Add(master);
+            }
+            else if (role == "Admin" && dto.MasterIds.Any())
+            {
+                foreach (var masterId in dto.MasterIds)
+                {
+                    var master = await _masterRepository.GetByIdAsync(masterId);
+                    if (master != null)
+                        masters.Add(master);
+                }
+            }
 
             string? imageUrl = null;
             if (dto.ImageFile != null)
-            {
                 imageUrl = await _fileStorageService.SaveFileAsync(dto.ImageFile, "campaigns");
-            }
 
             var campaign = new Campaign(
                 dto.Title,
                 dto.Description,
-                masterId,
                 dto.Price,
                 imageUrl,
                 dto.Level,
                 dto.MaxPlayers,
-                dto.DurationHours
+                dto.DurationHours,
+                masters
             );
 
             if (dto.Tags != null)
                 campaign.Tags.AddRange(dto.Tags.Select(tag => new CampaignTag(tag, campaign.Id)));
 
             await _campaignRepository.AddAsync(campaign);
-            campaign = await _campaignRepository.GetByIdAsync(campaign.Id);
-
-            return MapToDto(campaign!);
+            return MapToDto(campaign);
         }
 
         // --- Проверка прав доступа ---
-        private static void CheckAccess(Campaign campaign, Guid currentUserId, string role, Guid? masterUserId = null)
+        private static void CheckAccess(Campaign campaign, Guid currentUserId, string role)
         {
             if (role == "Admin")
-                return; // админ может делать всё
+                return;
 
-            // мастер может работать только со своими кампаниями
-            if (role == "Master")
-            {
-                if (campaign.MasterId != masterUserId)
-                    throw new UnauthorizedAccessException("You can only modify your own campaigns");
-            }
-            else
-            {
+            if (role == "Master" && (campaign.Masters == null || !campaign.Masters.Any(m => m.Id == currentUserId)))
+                throw new UnauthorizedAccessException("You can only modify your own campaigns");
+
+            if (role != "Admin" && role != "Master")
                 throw new UnauthorizedAccessException("Invalid role");
-            }
         }
 
         // --- Обновление кампании ---
         public async Task<CampaignDto> UpdateAsync(Guid id, UpdateCampaignDto dto, Guid currentUserId, string role, Guid? masterUserId = null)
         {
-            var campaign = await _campaignRepository.GetByIdAsync(id);
+            // Получаем сущность БЕЗ AsNoTracking, чтобы EF мог её отслеживать
+            var campaign = await _campaignRepository.GetByIdForUpdateAsync(id);
             if (campaign == null)
                 throw new KeyNotFoundException("Campaign not found");
 
-            CheckAccess(campaign, currentUserId, role, masterUserId);
+            CheckAccess(campaign, currentUserId, role);
 
-            if (!string.IsNullOrWhiteSpace(dto.Title)) campaign.UpdateTitle(dto.Title);
-            if (!string.IsNullOrWhiteSpace(dto.Description)) campaign.UpdateDescription(dto.Description);
-            if (dto.Price.HasValue) campaign.UpdatePrice(dto.Price.Value);
-            if (dto.Level.HasValue) campaign.UpdateLevel(dto.Level.Value);
-            if (dto.MaxPlayers.HasValue) campaign.UpdateMaxPlayers(dto.MaxPlayers.Value);
-            if (dto.DurationHours.HasValue) campaign.UpdateDuration(dto.DurationHours);
+            // Обновляем поля через методы домена
+            if (!string.IsNullOrWhiteSpace(dto.Title))
+                campaign.UpdateTitle(dto.Title);
+            if (!string.IsNullOrWhiteSpace(dto.Description))
+                campaign.UpdateDescription(dto.Description);
+            if (dto.Price.HasValue)
+                campaign.UpdatePrice(dto.Price.Value);
+            if (dto.Level.HasValue)
+                campaign.UpdateLevel(dto.Level.Value);
+            if (dto.MaxPlayers.HasValue)
+                campaign.UpdateMaxPlayers(dto.MaxPlayers.Value);
+            if (dto.DurationHours.HasValue)
+                campaign.UpdateDuration(dto.DurationHours);
 
+            // Обработка изображения
             if (dto.ImageFile != null)
             {
                 var imageUrl = await _fileStorageService.SaveFileAsync(dto.ImageFile, "campaigns");
                 campaign.UpdateImageUrl(imageUrl);
             }
 
+            // Обработка тегов - правильный способ для EF
             if (dto.Tags != null)
             {
-                campaign.Tags.Clear();
-                campaign.Tags.AddRange(dto.Tags.Select(t => new CampaignTag(t, campaign.Id)));
+                await _campaignRepository.UpdateCampaignTagsAsync(campaign.Id, dto.Tags);
             }
 
-            await _campaignRepository.UpdateAsync(campaign);
+            // Обработка мастеров (только для админа)
+            if (role == "Admin" && dto.MasterIds != null)
+            {
+                // Очищаем список мастеров
+                campaign.Masters.Clear();
+
+                // Добавляем новых мастеров
+                foreach (var masterId in dto.MasterIds)
+                {
+                    var master = await _masterRepository.GetByIdAsync(masterId);
+                    if (master != null)
+                        campaign.Masters.Add(master);
+                }
+            }
+
+            // Сохраняем изменения ОДИН раз
+            await _campaignRepository.SaveChangesAsync();
+
             return MapToDto(campaign);
         }
+
 
         // --- Удаление кампании ---
         public async Task DeleteAsync(Guid id, Guid currentUserId, string role, Guid? masterUserId = null)
@@ -133,7 +165,7 @@ namespace DnDAgency.Application.Services
             if (campaign == null)
                 throw new KeyNotFoundException("Campaign not found");
 
-            CheckAccess(campaign, currentUserId, role, masterUserId);
+            CheckAccess(campaign, currentUserId, role);
 
             var slots = await _slotRepository.GetByCampaignIdAsync(id);
             var hasActiveBookings = slots.Any(s => s.Bookings.Any() && s.StartTime > DateTime.UtcNow);
@@ -152,7 +184,7 @@ namespace DnDAgency.Application.Services
             if (campaign == null)
                 throw new KeyNotFoundException("Campaign not found");
 
-            CheckAccess(campaign, currentUserId, role, masterUserId);
+            CheckAccess(campaign, currentUserId, role);
 
             if (campaign.IsActive)
                 campaign.Deactivate();
@@ -164,7 +196,6 @@ namespace DnDAgency.Application.Services
         }
 
         // --- Слоты ---
-
         public async Task<List<SlotDto>> GetCampaignSlotsAsync(Guid campaignId)
         {
             var slots = await _slotRepository.GetByCampaignIdAsync(campaignId);
@@ -177,16 +208,14 @@ namespace DnDAgency.Application.Services
             if (campaign == null)
                 throw new KeyNotFoundException("Campaign not found");
 
-            CheckAccess(campaign, currentUserId, role, masterUserId);
+            CheckAccess(campaign, currentUserId, role);
 
             if (startTime <= DateTime.UtcNow)
                 throw new ArgumentException("Start time must be in the future");
 
             var slot = new Slot(campaignId, startTime);
             await _slotRepository.AddAsync(slot);
-            slot = await _slotRepository.GetByIdAsync(slot.Id);
-
-            return MapSlotToDto(slot!);
+            return MapSlotToDto(slot);
         }
 
         public async Task RemoveSlotFromCampaignAsync(Guid campaignId, Guid slotId, Guid currentUserId, string role, Guid? masterUserId = null)
@@ -195,7 +224,7 @@ namespace DnDAgency.Application.Services
             if (campaign == null)
                 throw new KeyNotFoundException("Campaign not found");
 
-            CheckAccess(campaign, currentUserId, role, masterUserId);
+            CheckAccess(campaign, currentUserId, role);
 
             var slot = await _slotRepository.GetByIdAsync(slotId);
             if (slot == null || slot.CampaignId != campaignId)
@@ -208,7 +237,6 @@ namespace DnDAgency.Application.Services
         }
 
         // --- Детали и каталог ---
-
         public async Task<CampaignDetailsDto> GetCampaignDetailsAsync(Guid id)
         {
             var campaign = await _campaignRepository.GetByIdAsync(id);
@@ -238,14 +266,15 @@ namespace DnDAgency.Application.Services
                 Id = campaign.Id,
                 Title = campaign.Title,
                 Description = campaign.Description,
-                MasterName = campaign.Master?.Name ?? "Unknown",
+                MasterName = string.Join(", ", campaign.Masters?.Select(m => m.Name) ?? new List<string> { "Unknown" }),
                 Price = campaign.Price,
                 ImageUrl = campaign.ImageUrl,
                 Level = campaign.Level,
                 MaxPlayers = campaign.MaxPlayers,
                 DurationHours = campaign.DurationHours,
                 Tags = campaign.Tags.Select(t => t.Name).ToList(),
-                IsActive = campaign.IsActive
+                IsActive = campaign.IsActive,
+                Slots = campaign.Slots.Select(MapSlotToDto).ToList()
             };
         }
 
@@ -276,8 +305,8 @@ namespace DnDAgency.Application.Services
                 Level = campaign.Level,
                 StartTime = slot.StartTime,
                 BookedPlayers = slot.Bookings.Count,
-                AvailableSlots = slot.Campaign.MaxPlayers - slot.Bookings.Count,
-                IsFull = (slot.Campaign.MaxPlayers - slot.Bookings.Count) <= 0
+                AvailableSlots = campaign.MaxPlayers - slot.Bookings.Count,
+                IsFull = (campaign.MaxPlayers - slot.Bookings.Count) <= 0
             };
         }
 
@@ -288,15 +317,13 @@ namespace DnDAgency.Application.Services
                 Id = campaign.Id,
                 Title = campaign.Title,
                 Description = campaign.Description,
-                MasterId = campaign.MasterId,
-                MasterName = campaign.Master?.Name ?? "Unknown",
+                MasterIds = campaign.Masters?.Select(m => m.Id).ToList() ?? new List<Guid>(),
+                MasterNames = campaign.Masters?.Select(m => m.Name).ToList() ?? new List<string>(),
                 Price = campaign.Price,
                 ImageUrl = campaign.ImageUrl,
                 Level = campaign.Level,
                 MaxPlayers = campaign.MaxPlayers,
-                Duration = campaign.DurationHours.HasValue
-                    ? TimeSpan.FromHours(campaign.DurationHours.Value)
-                    : (TimeSpan?)null,
+                Duration = campaign.DurationHours.HasValue ? TimeSpan.FromHours(campaign.DurationHours.Value) : (TimeSpan?)null,
                 Tags = campaign.Tags.Select(t => t.Name).ToList(),
                 IsActive = campaign.IsActive,
                 HasAvailableSlots = campaign.HasAvailableSlots,

@@ -204,7 +204,7 @@ namespace DnDAgency.Application.Services
                 Id = user.Id,
                 Username = user.Username,
                 Email = user.Email,
-                Role = user.Role,
+                Role = user.Role.ToString(),
                 IsMaster = user.IsMaster,
                 IsAdmin = user.IsAdmin,
                 IsActive = user.IsActive,

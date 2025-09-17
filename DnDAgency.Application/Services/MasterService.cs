@@ -46,7 +46,6 @@ namespace DnDAgency.Application.Services
             if (!user.IsMaster)
                 throw new ArgumentException("User must have Master role to create master profile");
 
-            // Проверяем, нет ли уже мастера для этого пользователя
             var allMasters = await _masterRepository.GetAllAsync();
             if (allMasters.Any(m => m.UserId == userId))
                 throw new ArgumentException("Master profile already exists for this user");
@@ -63,7 +62,6 @@ namespace DnDAgency.Application.Services
             if (master == null)
                 throw new KeyNotFoundException("Master not found");
 
-            // Проверяем права доступа
             if (master.UserId != currentUserId)
                 throw new UnauthorizedAccessException("Can only update own master profile");
 
@@ -120,8 +118,8 @@ namespace DnDAgency.Application.Services
                 Id = campaign.Id,
                 Title = campaign.Title,
                 Description = campaign.Description,
-                MasterId = campaign.MasterId,
-                MasterName = campaign.Master?.Name ?? "Unknown",
+                MasterIds = campaign.Masters?.Select(m => m.Id).ToList() ?? new List<Guid>(),
+                MasterNames = campaign.Masters?.Select(m => m.Name).ToList() ?? new List<string>(),
                 Price = campaign.Price,
                 IsActive = campaign.IsActive,
                 HasAvailableSlots = campaign.HasAvailableSlots,
