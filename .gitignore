@@ -421,3 +421,4 @@ FodyWeavers.xsd
 *.msm
 *.msp
 /DnDAgency/wwwroot/campaigns
+/DnDAgency/wwwroot/masters
