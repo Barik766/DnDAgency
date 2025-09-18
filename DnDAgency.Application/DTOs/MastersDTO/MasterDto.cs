@@ -10,6 +10,7 @@
         public int CampaignCount { get; set; }
         public double AverageRating { get; set; }
         public int ReviewCount { get; set; }
+        public string? PhotoUrl { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
     }

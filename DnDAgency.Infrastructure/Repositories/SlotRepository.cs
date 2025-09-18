@@ -70,4 +70,17 @@ public class SlotRepository : GenericRepository<Slot>, ISlotRepository
             .AsNoTracking()
             .ToListAsync();
     }
+
+    public async Task<List<Guid>> GetCampaignIdsWithAvailableSlotsAsync(List<Guid> campaignIds)
+    {
+        var now = DateTime.UtcNow;
+        return await _dbSet
+            .Include(s => s.Campaign)
+            .Where(s => campaignIds.Contains(s.CampaignId) &&
+                       s.StartTime > now &&
+                       s.Bookings.Count < s.Campaign.MaxPlayers)
+            .Select(s => s.CampaignId)
+            .Distinct()
+            .ToListAsync();
+    }
 }

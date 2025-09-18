@@ -11,5 +11,8 @@ namespace DnDAgency.Application.Interfaces
         Task<MasterDto> UpdateAsync(Guid id, UpdateMasterDto dto, Guid currentUserId);
         Task DeactivateAsync(Guid id, Guid currentUserId);
         Task<List<CampaignDto>> GetMasterCampaignsAsync(Guid masterId);
+        Task<MasterDto> AdminCreateMasterAsync(AdminCreateMasterDto dto);
+        Task AddCampaignToMasterAsync(Guid masterId, Guid campaignId);
+        Task AssignCampaignsAsync(Guid masterId, List<Guid> campaignIds, Guid currentUserId);
     }
 }

@@ -248,8 +248,13 @@ namespace DnDAgency.Application.Services
 
         public async Task<List<CampaignCatalogDto>> GetCampaignCatalogAsync()
         {
-            var campaigns = await _campaignRepository.GetActiveCampaignsAsync();
-            return campaigns.Select(MapToCampaignCatalogDto).ToList();
+            var campaigns = await _campaignRepository.GetCampaignCatalogAsync();
+
+            // Получаем campaignIds с доступными слотами одним запросом
+            var campaignIds = campaigns.Select(c => c.Id).ToList();
+            var campaignIdsWithSlots = await _slotRepository.GetCampaignIdsWithAvailableSlotsAsync(campaignIds);
+
+            return campaigns.Select(c => MapToCampaignCatalogDto(c, campaignIdsWithSlots.Contains(c.Id))).ToList();
         }
 
         public async Task<List<UpcomingGameDto>> GetUpcomingGamesAsync()
@@ -278,7 +283,7 @@ namespace DnDAgency.Application.Services
             };
         }
 
-        private static CampaignCatalogDto MapToCampaignCatalogDto(Campaign campaign)
+        private static CampaignCatalogDto MapToCampaignCatalogDto(Campaign campaign, bool hasAvailableSlots)
         {
             return new CampaignCatalogDto
             {
@@ -288,7 +293,7 @@ namespace DnDAgency.Application.Services
                 Level = campaign.Level,
                 Price = campaign.Price,
                 Tags = campaign.Tags.Select(t => t.Name).ToList(),
-                HasAvailableSlots = campaign.HasAvailableSlots,
+                HasAvailableSlots = hasAvailableSlots,
                 IsActive = campaign.IsActive
             };
         }

@@ -42,6 +42,23 @@ namespace DnDAgency.Api.Controllers
             }
         }
 
+        [HttpPost("admin-create")]
+        public async Task<IActionResult> AdminCreate([FromForm] AdminCreateMasterDto request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Bio))
+                return BadRequest(new { message = "Name and Bio are required" });
+
+            try
+            {
+                var master = await _masterService.AdminCreateMasterAsync(request);
+                return CreatedAtAction(nameof(GetById), new { id = master.Id }, master);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
         [HttpPost("create-profile")]
         [Authorize(Roles = "Master,Admin")]
         public async Task<IActionResult> CreateProfile([FromBody] CreateMasterProfileRequest request)
@@ -122,6 +139,25 @@ namespace DnDAgency.Api.Controllers
                 return NotFound(new { message = ex.Message });
             }
         }
+
+        [HttpPost("{masterId}/campaigns")]
+        public async Task<IActionResult> AddCampaignToMaster(Guid masterId, [FromBody] AddCampaignToMasterDto dto)
+        {
+            await _masterService.AddCampaignToMasterAsync(masterId, dto.CampaignId);
+            return Ok(new { message = "Campaign added to master successfully" });
+        }
+
+        [HttpPost("{id}/campaigns/assign")]
+        [Authorize(Roles = "Master,Admin")]
+        public async Task<IActionResult> AssignCampaigns(Guid id, [FromBody] AssignCampaignsDto dto)
+        {
+            var currentUserId = GetCurrentUserId();
+
+            await _masterService.AssignCampaignsAsync(id, dto.CampaignIds, currentUserId);
+
+            return Ok(new { Message = "Campaigns assigned successfully" });
+        }
+
 
         private Guid GetCurrentUserId()
         {

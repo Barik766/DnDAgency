@@ -8,6 +8,7 @@
         public string Name { get; private set; }
         public string Bio { get; private set; }
         public bool IsActive { get; private set; } = true;
+        public string PhotoUrl { get; private set; }
         public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; private set; }
 
