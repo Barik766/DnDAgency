@@ -195,47 +195,6 @@ namespace DnDAgency.Application.Services
             return MapToDto(campaign);
         }
 
-        // --- Слоты ---
-        public async Task<List<SlotDto>> GetCampaignSlotsAsync(Guid campaignId)
-        {
-            var slots = await _slotRepository.GetByCampaignIdAsync(campaignId);
-            return slots.Select(MapSlotToDto).ToList();
-        }
-
-        public async Task<SlotDto> AddSlotToCampaignAsync(Guid campaignId, DateTime startTime, Guid currentUserId, string role, Guid? masterUserId = null)
-        {
-            var campaign = await _campaignRepository.GetByIdAsync(campaignId);
-            if (campaign == null)
-                throw new KeyNotFoundException("Campaign not found");
-
-            CheckAccess(campaign, currentUserId, role);
-
-            if (startTime <= DateTime.UtcNow)
-                throw new ArgumentException("Start time must be in the future");
-
-            var slot = new Slot(campaignId, startTime);
-            await _slotRepository.AddAsync(slot);
-            return MapSlotToDto(slot);
-        }
-
-        public async Task RemoveSlotFromCampaignAsync(Guid campaignId, Guid slotId, Guid currentUserId, string role, Guid? masterUserId = null)
-        {
-            var campaign = await _campaignRepository.GetByIdAsync(campaignId);
-            if (campaign == null)
-                throw new KeyNotFoundException("Campaign not found");
-
-            CheckAccess(campaign, currentUserId, role);
-
-            var slot = await _slotRepository.GetByIdAsync(slotId);
-            if (slot == null || slot.CampaignId != campaignId)
-                throw new KeyNotFoundException("Slot not found in this campaign");
-
-            if (slot.Bookings.Any())
-                throw new InvalidOperationException("Cannot remove slot with existing bookings");
-
-            await _slotRepository.DeleteAsync(slot);
-        }
-
         // --- Детали и каталог ---
         public async Task<CampaignDetailsDto> GetCampaignDetailsAsync(Guid id)
         {
@@ -261,6 +220,48 @@ namespace DnDAgency.Application.Services
         {
             var slots = await _slotRepository.GetUpcomingSlotsAsync();
             return slots.Select(MapToUpcomingGameDto).ToList();
+        }
+
+        public async Task<List<AvailableTimeSlot>> GetAvailableTimeSlotsAsync(Guid campaignId, DateTime date)
+        {
+            var campaign = await _campaignRepository.GetByIdAsync(campaignId);
+            if (campaign == null)
+                throw new KeyNotFoundException("Campaign not found");
+
+            if (!campaign.DurationHours.HasValue)
+                throw new InvalidOperationException("Campaign duration is not set");
+
+            var result = new List<AvailableTimeSlot>();
+
+            // Получаем все слоты кампании на указанную дату
+            var existingSlots = campaign.Slots.Where(s => s.StartTime.Date == date.Date).ToList();
+
+            // Генерируем все возможные временные слоты
+            var currentTime = campaign.WorkingHoursStart;
+            var maxStartTime = campaign.GetMaxStartTime();
+
+            while (currentTime <= maxStartTime)
+            {
+                var slotDateTime = date.Date.Add(currentTime);
+
+                // Проверяем, есть ли уже слот на это время
+                var existingSlot = existingSlots.FirstOrDefault(s => s.StartTime.TimeOfDay == currentTime);
+
+                var availableSlot = new AvailableTimeSlot
+                {
+                    DateTime = slotDateTime,
+                    IsAvailable = existingSlot == null || !existingSlot.IsFull,
+                    CurrentPlayers = existingSlot?.CurrentPlayers ?? 0,
+                    MaxPlayers = campaign.MaxPlayers
+                };
+
+                result.Add(availableSlot);
+
+                // Увеличиваем время на час (или можно сделать настраиваемым)
+                currentTime = currentTime.Add(TimeSpan.FromHours(1));
+            }
+
+            return result;
         }
 
         // --- Mapping ---

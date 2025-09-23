@@ -26,7 +26,7 @@ namespace DnDAgency.Api.Controllers
             try
             {
                 var userId = GetCurrentUserId();
-                var booking = await _bookingService.CreateBookingAsync(userId, request.SlotId);
+                var booking = await _bookingService.CreateBookingAsync(userId, request.CampaignId, request.StartTime);
                 return CreatedAtAction(nameof(GetUserBookings), new { }, booking);
             }
             catch (KeyNotFoundException ex)

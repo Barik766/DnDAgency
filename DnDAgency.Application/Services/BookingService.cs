@@ -4,6 +4,7 @@ using DnDAgency.Application.Interfaces;
 using DnDAgency.Domain.Entities;
 using DnDAgency.Domain.Exceptions;
 using DnDAgency.Domain.Interfaces;
+using DnDAgency.Infrastructure.Repositories;
 
 namespace DnDAgency.Application.Services
 {
@@ -12,45 +13,84 @@ namespace DnDAgency.Application.Services
         private readonly IBookingRepository _bookingRepository;
         private readonly ISlotRepository _slotRepository;
         private readonly IUserRepository _userRepository;
+        private readonly ICampaignRepository _campaignRepository; 
 
         public BookingService(
             IBookingRepository bookingRepository,
             ISlotRepository slotRepository,
-            IUserRepository userRepository)
+            IUserRepository userRepository,
+            ICampaignRepository campaignRepository)
         {
             _bookingRepository = bookingRepository;
             _slotRepository = slotRepository;
             _userRepository = userRepository;
+            _campaignRepository = campaignRepository;
         }
 
-        public async Task<BookingDto> CreateBookingAsync(Guid userId, Guid slotId)
+        public async Task<BookingDto> CreateBookingAsync(Guid userId, Guid campaignId, DateTime startTime)
         {
+            // Преобразуем в UTC если Kind не указан
+            if (startTime.Kind == DateTimeKind.Unspecified)
+            {
+                startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Utc);
+            }
+
             // Проверяем существование пользователя
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
                 throw new KeyNotFoundException("User not found");
 
-            // Проверяем существование слота с полной загрузкой
-            var slot = await _slotRepository.GetByIdAsync(slotId);
-            if (slot == null)
-                throw new KeyNotFoundException("Slot not found");
+            // Проверяем существование кампании с полной загрузкой
+            var campaign = await _campaignRepository.GetByIdAsync(campaignId);
+            if (campaign == null)
+                throw new KeyNotFoundException("Campaign not found");
 
-            // Проверяем возможность бронирования
-            if (!CanBeBooked(slot))
+            // Проверяем, есть ли уже слот на это время
+            var existingSlot = await _slotRepository.GetByCampaignAndTimeAsync(campaignId, startTime);
+
+            Slot slot;
+
+            if (existingSlot != null)
             {
-                if (slot.StartTime < DateTime.UtcNow)
-                    throw new PastSlotBookingException();
-                if ((slot.Campaign.MaxPlayers - slot.Bookings.Count) <= 0)
+                // Проверяем, может ли пользователь забронировать этот слот
+                if (existingSlot.IsFull)
                     throw new SlotFullException();
+
+                if (existingSlot.IsInPast)
+                    throw new PastSlotBookingException();
+
+                // Проверяем, нет ли уже брони у этого пользователя на этот слот
+                if (existingSlot.Bookings.Any(b => b.UserId == userId))
+                    throw new ArgumentException("User already has booking for this time slot");
+
+                slot = existingSlot;
+            }
+            else
+            {
+                // Валидация рабочих часов перед созданием слота
+                var timeOfDay = startTime.TimeOfDay;
+                if (timeOfDay < campaign.WorkingHoursStart)
+                    throw new ArgumentException($"Start time cannot be earlier than {campaign.WorkingHoursStart}");
+                if (timeOfDay > campaign.GetMaxStartTime())
+                    throw new ArgumentException($"Start time cannot be later than {campaign.GetMaxStartTime()}");
+
+                // Создаем новый слот БЕЗ передачи объекта campaign
+                slot = new Slot(campaignId, startTime);
+
+                // Остальная проверка...
+                var userBookingOnDate = campaign.Slots
+                    .Where(s => s.StartTime.Date == startTime.Date)
+                    .SelectMany(s => s.Bookings)
+                    .Any(b => b.UserId == userId);
+
+                if (userBookingOnDate)
+                    throw new ArgumentException("User already has booking on this date");
+
+                await _slotRepository.AddAsync(slot);
             }
 
-            // Проверяем, нет ли уже брони у этого пользователя на этот слот
-            var existingBooking = await _bookingRepository.GetByUserAndSlotAsync(userId, slotId);
-            if (existingBooking != null)
-                throw new ArgumentException("User already has booking for this slot");
-
             // Создаем бронирование
-            var booking = new Booking(userId, slotId);
+            var booking = new Booking(userId, slot.Id);
             await _bookingRepository.AddAsync(booking);
 
             // Перезагружаем бронирование с полными данными

@@ -83,4 +83,16 @@ public class SlotRepository : GenericRepository<Slot>, ISlotRepository
             .Distinct()
             .ToListAsync();
     }
+
+    public async Task<Slot?> GetByCampaignAndTimeAsync(Guid campaignId, DateTime startTime)
+    {
+        return await _dbSet
+            .Include(s => s.Campaign)
+                .ThenInclude(c => c.Masters)
+            .Include(s => s.Bookings)
+                .ThenInclude(b => b.User)
+            .FirstOrDefaultAsync(s => s.CampaignId == campaignId &&
+                                s.StartTime.Date == startTime.Date &&
+                                s.StartTime.TimeOfDay == startTime.TimeOfDay);
+    }
 }

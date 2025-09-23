@@ -12,7 +12,7 @@
         public string ImageUrl { get; private set; }
         public int Level { get; private set; } // 1–20
         public int MaxPlayers { get; private set; } // 1–8
-        public int? DurationHours { get; private set; }
+        public double? DurationHours { get; private set; } 
 
         public List<CampaignTag> Tags { get; private set; } = new();
         public List<Slot> Slots { get; private set; } = new();
@@ -20,6 +20,9 @@
         public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; private set; }
         public bool IsActive { get; private set; } = true;
+
+        public TimeSpan WorkingHoursStart { get; private set; } = new TimeSpan(10, 0, 0); // 10:00
+        public TimeSpan WorkingHoursEnd { get; private set; } = new TimeSpan(21, 0, 0); // 21:00  
 
         public bool HasAvailableSlots => Slots.Any(s => s.CanBeBooked(MaxPlayers));
 
@@ -32,7 +35,7 @@
         string imageUrl,
         int level,
         int maxPlayers = 8,
-        int? durationHours = null,
+        double? durationHours = null,
         List<Master>? masters = null)
             {
                 ValidateTitle(title);
@@ -134,12 +137,6 @@
             UpdatedAt = DateTime.UtcNow;
         }
 
-        public Slot AddSlot(DateTime startTime)
-        {
-            var slot = new Slot(Id, startTime);
-            Slots.Add(slot);
-            return slot;
-        }
 
         // === Validators ===
         private static void ValidateTitle(string title)
@@ -185,5 +182,14 @@
             if (maxPlayers < 1 || maxPlayers > 8)
                 throw new ArgumentException("MaxPlayers must be between 1 and 8");
         }
+
+        public TimeSpan GetMaxStartTime()
+        {
+            if (!DurationHours.HasValue)
+                throw new InvalidOperationException("DurationHours is not set.");
+
+            return WorkingHoursEnd.Subtract(TimeSpan.FromHours(DurationHours.Value));
+        }
+
     }
 }

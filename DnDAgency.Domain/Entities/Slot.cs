@@ -20,7 +20,8 @@ namespace DnDAgency.Domain.Entities
 
         public Slot(Guid campaignId, DateTime startTime)
         {
-            ValidateStartTime(startTime);
+            if (startTime < DateTime.UtcNow)
+                throw new PastSlotBookingException();
 
             CampaignId = campaignId;
             StartTime = startTime;
@@ -28,7 +29,7 @@ namespace DnDAgency.Domain.Entities
 
         public void UpdateStartTime(DateTime startTime)
         {
-            ValidateStartTime(startTime);
+            ValidateStartTime(startTime, Campaign);
             StartTime = startTime;
         }
 
@@ -37,10 +38,18 @@ namespace DnDAgency.Domain.Entities
             return !IsInPast && CurrentPlayers < maxPlayers;
         }
 
-        private static void ValidateStartTime(DateTime startTime)
+        private static void ValidateStartTime(DateTime startTime, Campaign campaign)
         {
             if (startTime < DateTime.UtcNow)
                 throw new PastSlotBookingException();
+
+            var timeOfDay = startTime.TimeOfDay;
+            
+            if (timeOfDay < campaign.WorkingHoursStart)
+                throw new ArgumentException($"Start time cannot be earlier than {campaign.WorkingHoursStart}");
+            
+            if (timeOfDay > campaign.GetMaxStartTime())
+                throw new ArgumentException($"Start time cannot be later than {campaign.GetMaxStartTime()}");
         }
     }
 }

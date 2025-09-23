@@ -14,7 +14,7 @@ namespace DnDAgency.Application.DTOs.CampaignsDTO
         public string ImageUrl { get; set; } = null!;
         public int Level { get; set; }
         public int MaxPlayers { get; set; }
-        public int? DurationHours { get; set; }
+        public double? DurationHours { get; set; }
         public List<string> Tags { get; set; } = new();
         public bool IsActive { get; set; }
 

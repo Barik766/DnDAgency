@@ -63,18 +63,22 @@ namespace DnDAgency.Api.Controllers
             return Ok(games);
         }
 
-        [HttpGet("{id}/slots")]
+        [HttpGet("{id}/available-times")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetSlots(Guid id)
+        public async Task<IActionResult> GetAvailableTimeSlots(Guid id, [FromQuery] DateTime date)
         {
             try
             {
-                var slots = await _campaignService.GetCampaignSlotsAsync(id);
-                return Ok(slots);
+                var timeSlots = await _campaignService.GetAvailableTimeSlotsAsync(id, date);
+                return Ok(timeSlots);
             }
             catch (KeyNotFoundException ex)
             {
                 return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
             }
         }
 
@@ -152,39 +156,7 @@ namespace DnDAgency.Api.Controllers
             catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
         }
 
-        [HttpPost("{id}/slots")]
-        [Authorize(Roles = "Master,Admin")]
-        public async Task<IActionResult> AddSlot(Guid id, [FromBody] CreateSlotRequest request)
-        {
-            try
-            {
-                var role = GetCurrentUserRole();
-                var userId = GetCurrentUserId();
-
-                var slot = await _campaignService.AddSlotToCampaignAsync(id, request.StartTime, userId, role);
-                return CreatedAtAction(nameof(GetSlots), new { id }, slot);
-            }
-            catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
-            catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
-            catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
-        }
-
-        [HttpDelete("{campaignId}/slots/{slotId}")]
-        [Authorize(Roles = "Master,Admin")]
-        public async Task<IActionResult> RemoveSlot(Guid campaignId, Guid slotId)
-        {
-            try
-            {
-                var role = GetCurrentUserRole();
-                var userId = GetCurrentUserId();
-
-                await _campaignService.RemoveSlotFromCampaignAsync(campaignId, slotId, userId, role);
-                return NoContent();
-            }
-            catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
-            catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
-            catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
-        }
+        
 
         // ---------------- HELPERS ----------------
 
@@ -202,9 +174,5 @@ namespace DnDAgency.Api.Controllers
         }
     }
 
-    public class CreateSlotRequest
-    {
-        [Required]
-        public DateTime StartTime { get; set; }
-    }
+
 }
