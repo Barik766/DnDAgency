@@ -11,7 +11,7 @@ public interface ICampaignService
     Task<CampaignDto> ToggleStatusAsync(Guid id, Guid currentUserId, string role, Guid? masterUserId = null);
 
     // Новый метод для получения доступных временных слотов
-    Task<List<AvailableTimeSlot>> GetAvailableTimeSlotsAsync(Guid campaignId, DateTime date);
+    Task<List<AvailableTimeSlot>> GetAvailableTimeSlotsAsync(Guid campaignId, DateTime date, RoomType roomType);
 
     // Методы для отображения данных
     Task<CampaignDetailsDto> GetCampaignDetailsAsync(Guid id);

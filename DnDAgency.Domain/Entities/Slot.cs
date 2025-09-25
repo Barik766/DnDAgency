@@ -11,7 +11,7 @@ namespace DnDAgency.Domain.Entities
 
         public List<Booking> Bookings { get; private set; } = new();
 
-        public int CurrentPlayers => Bookings.Count;
+        public int CurrentPlayers => Bookings.Sum(b => b.PlayersCount);
         public int AvailableSlots => Campaign.MaxPlayers - CurrentPlayers;
         public bool IsFull => AvailableSlots <= 0;
         public bool IsInPast => StartTime < DateTime.UtcNow;

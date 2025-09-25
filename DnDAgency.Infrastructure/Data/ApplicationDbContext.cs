@@ -16,6 +16,7 @@ namespace DnDAgency.Infrastructure.Data
         public DbSet<Review> Reviews => Set<Review>();
         public DbSet<CampaignTag> CampaignTags => Set<CampaignTag>();
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+        public DbSet<Room> Rooms => Set<Room>();
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

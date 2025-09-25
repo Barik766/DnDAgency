@@ -63,22 +63,23 @@ namespace DnDAgency.Api.Controllers
             return Ok(games);
         }
 
-        [HttpGet("{id}/available-times")]
+        [HttpGet("{campaignId}/available-slots")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetAvailableTimeSlots(Guid id, [FromQuery] DateTime date)
+        public async Task<IActionResult> GetAvailableTimeSlots(Guid campaignId,[FromQuery] DateTime date,[FromQuery] string roomType)
         {
             try
             {
-                var timeSlots = await _campaignService.GetAvailableTimeSlotsAsync(id, date);
-                return Ok(timeSlots);
+                if (!Enum.TryParse<RoomType>(roomType, true, out var roomTypeEnum))
+                {
+                    return BadRequest("Invalid room type. Use 'Online' or 'Physical'");
+                }
+
+                var slots = await _campaignService.GetAvailableTimeSlotsAsync(campaignId, date, roomTypeEnum);
+                return Ok(new { Success = true, Data = slots, Message = "Request completed successfully" });
             }
-            catch (KeyNotFoundException ex)
+            catch (Exception ex)
             {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new { Success = false, Message = ex.Message });
             }
         }
 

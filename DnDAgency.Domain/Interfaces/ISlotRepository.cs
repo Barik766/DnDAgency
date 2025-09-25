@@ -10,4 +10,5 @@ public interface ISlotRepository : IRepository<Slot>
     Task<List<Slot>> GetUpcomingSlotsAsync();
     Task<List<Guid>> GetCampaignIdsWithAvailableSlotsAsync(List<Guid> campaignIds);
     Task<Slot?> GetByCampaignAndTimeAsync(Guid campaignId, DateTime startTime);
+    Task<List<Slot>> GetByCampaignAndDateAsync(Guid campaignId, DateTime date);
 }

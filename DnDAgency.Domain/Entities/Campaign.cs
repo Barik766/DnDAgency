@@ -3,6 +3,9 @@
     public class Campaign
     {
         public Guid Id { get; private set; } = Guid.NewGuid();
+        public Guid RoomId { get; private set; }
+        public Room Room { get; private set; }
+        public RoomType RoomType => Room.Type; 
         public string Title { get; private set; }
         public string Description { get; private set; }
         public List<Master> Masters { get; private set; } = new();
@@ -26,6 +29,8 @@
 
         public bool HasAvailableSlots => Slots.Any(s => s.CanBeBooked(MaxPlayers));
 
+        
+
         private Campaign() { } // EF Core
 
         public Campaign(
@@ -34,6 +39,7 @@
         decimal price,
         string imageUrl,
         int level,
+        Guid roomId,
         int maxPlayers = 8,
         double? durationHours = null,
         List<Master>? masters = null)
@@ -50,10 +56,11 @@
                 Price = price;
                 ImageUrl = imageUrl;
                 Level = level;
+                RoomId = roomId;
                 MaxPlayers = maxPlayers;
                 DurationHours = durationHours;
 
-                Masters = masters ?? new List<Master>();
+            Masters = masters ?? new List<Master>();
             }
 
 

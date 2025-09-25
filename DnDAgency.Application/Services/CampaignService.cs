@@ -12,17 +12,20 @@ namespace DnDAgency.Application.Services
         private readonly ISlotRepository _slotRepository;
         private readonly IMasterRepository _masterRepository;
         private readonly IFileStorageService _fileStorageService;
+        private readonly IConflictCheckService _conflictCheckService;
 
         public CampaignService(
             ICampaignRepository campaignRepository,
             ISlotRepository slotRepository,
             IMasterRepository masterRepository,
-            IFileStorageService fileStorageService)
+            IFileStorageService fileStorageService,
+            IConflictCheckService conflictCheckService)
         {
             _campaignRepository = campaignRepository;
             _slotRepository = slotRepository;
             _masterRepository = masterRepository;
             _fileStorageService = fileStorageService;
+            _conflictCheckService = conflictCheckService;
         }
 
         // --- Получение данных ---
@@ -74,6 +77,7 @@ namespace DnDAgency.Application.Services
                 dto.Price,
                 imageUrl,
                 dto.Level,
+                dto.RoomId,
                 dto.MaxPlayers,
                 dto.DurationHours,
                 masters
@@ -222,42 +226,51 @@ namespace DnDAgency.Application.Services
             return slots.Select(MapToUpcomingGameDto).ToList();
         }
 
-        public async Task<List<AvailableTimeSlot>> GetAvailableTimeSlotsAsync(Guid campaignId, DateTime date)
+        public async Task<List<AvailableTimeSlot>> GetAvailableTimeSlotsAsync(Guid campaignId, DateTime date, RoomType roomType)
         {
             var campaign = await _campaignRepository.GetByIdAsync(campaignId);
-            if (campaign == null)
-                throw new KeyNotFoundException("Campaign not found");
+            if (campaign == null || !campaign.DurationHours.HasValue || campaign.Room.Type != roomType)
+                return new List<AvailableTimeSlot>();
 
-            if (!campaign.DurationHours.HasValue)
-                throw new InvalidOperationException("Campaign duration is not set");
+            // ЗАГРУЖАЕМ ВСЕ КОНФЛИКТУЮЩИЕ СЛОТЫ ОДНИМ ЗАПРОСОМ
+            var roomConflicts = await GetAllRoomConflictsAsync(campaign.RoomId, date);
 
+            var duration = TimeSpan.FromHours(campaign.DurationHours.Value);
+            var existingSlots = campaign.Slots.Where(s => s.StartTime.Date == date.Date).ToList();
             var result = new List<AvailableTimeSlot>();
 
-            // Получаем все слоты кампании на указанную дату
-            var existingSlots = campaign.Slots.Where(s => s.StartTime.Date == date.Date).ToList();
-
-            // Генерируем все возможные временные слоты
             var currentTime = campaign.WorkingHoursStart;
-            var maxStartTime = campaign.GetMaxStartTime();
-
-            while (currentTime <= maxStartTime)
+            while (currentTime <= campaign.GetMaxStartTime())
             {
-                var slotDateTime = date.Date.Add(currentTime);
+                var slotDateTime = date.Date.ToUniversalTime().Add(currentTime);
 
-                // Проверяем, есть ли уже слот на это время
-                var existingSlot = existingSlots.FirstOrDefault(s => s.StartTime.TimeOfDay == currentTime);
-
-                var availableSlot = new AvailableTimeSlot
+                if (slotDateTime <= DateTime.UtcNow)
                 {
-                    DateTime = slotDateTime,
-                    IsAvailable = existingSlot == null || !existingSlot.IsFull,
-                    CurrentPlayers = existingSlot?.CurrentPlayers ?? 0,
-                    MaxPlayers = campaign.MaxPlayers
-                };
+                    currentTime = currentTime.Add(TimeSpan.FromHours(1));
+                    continue;
+                }
 
-                result.Add(availableSlot);
+                var existingSlot = existingSlots.FirstOrDefault(s => s.StartTime == slotDateTime);
+                bool isAvailable = existingSlot?.IsFull != true;
 
-                // Увеличиваем время на час (или можно сделать настраиваемым)
+                // ПРОВЕРЯЕМ КОНФЛИКТЫ БЕЗ ЗАПРОСОВ К БД
+                if (isAvailable && HasTimeConflict(slotDateTime, duration, roomConflicts, existingSlot?.Id))
+                {
+                    isAvailable = false;
+                }
+
+                if (isAvailable) // ДОБАВЛЯЕМ ТОЛЬКО ДОСТУПНЫЕ
+                {
+                    result.Add(new AvailableTimeSlot
+                    {
+                        DateTime = slotDateTime,
+                        IsAvailable = true,
+                        CurrentPlayers = existingSlot?.CurrentPlayers ?? 0,
+                        MaxPlayers = campaign.MaxPlayers,
+                        RoomType = roomType
+                    });
+                }
+
                 currentTime = currentTime.Add(TimeSpan.FromHours(1));
             }
 
@@ -352,8 +365,53 @@ namespace DnDAgency.Application.Services
                 CurrentPlayers = currentPlayers,
                 AvailableSlots = availableSlots,
                 IsFull = availableSlots <= 0,
-                IsInPast = slot.StartTime < DateTime.UtcNow
+                IsInPast = slot.StartTime < DateTime.UtcNow,
+                RoomType = campaign.Room.Type
+
             };
+        }
+
+
+        // --- Вспомогательные методы для проверки конфликтов ---
+
+        private async Task<List<ConflictSlot>> GetAllRoomConflictsAsync(Guid roomId, DateTime date)
+        {
+            var conflicts = new List<ConflictSlot>();
+
+            // Получаем все кампании в этой комнате
+            var roomCampaigns = await _campaignRepository.GetByRoomIdAsync(roomId);
+
+            foreach (var campaign in roomCampaigns)
+            {
+                if (!campaign.DurationHours.HasValue) continue;
+
+                var duration = TimeSpan.FromHours(campaign.DurationHours.Value);
+
+                // Получаем слоты с бронированиями в указанную дату
+                var bookedSlots = campaign.Slots
+                    .Where(s => s.StartTime.Date == date.Date && s.CurrentPlayers > 0)
+                    .Select(s => new ConflictSlot
+                    {
+                        Id = s.Id,
+                        StartTime = s.StartTime,
+                        EndTime = s.StartTime.Add(duration),
+                        CampaignId = campaign.Id
+                    });
+
+                conflicts.AddRange(bookedSlots);
+            }
+
+            return conflicts;
+        }
+
+        private bool HasTimeConflict(DateTime startTime, TimeSpan duration, List<ConflictSlot> conflicts, Guid? excludeSlotId = null)
+        {
+            var endTime = startTime.Add(duration);
+
+            return conflicts.Any(conflict =>
+                conflict.Id != excludeSlotId &&
+                ConflictCheckService.TimeIntervalsOverlap(startTime, endTime, conflict.StartTime, conflict.EndTime)
+            );
         }
     }
 }

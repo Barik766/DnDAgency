@@ -10,5 +10,6 @@
         public int AvailableSlots { get; set; }
         public bool IsFull { get; set; }
         public bool IsInPast { get; set; }
+        public RoomType RoomType { get; set; }
     }
 }

@@ -5,7 +5,7 @@ using ApplicationDbContext = DnDAgency.Infrastructure.Data.ApplicationDbContext;
 
 namespace DnDAgency.Infrastructure.Repositories;
 
-public class SlotRepository : GenericRepository<Slot>, ISlotRepository
+public partial class SlotRepository : GenericRepository<Slot>, ISlotRepository
 {
     public SlotRepository(ApplicationDbContext context) : base(context) { }
 

@@ -13,27 +13,34 @@ namespace DnDAgency.Application.Services
         private readonly IBookingRepository _bookingRepository;
         private readonly ISlotRepository _slotRepository;
         private readonly IUserRepository _userRepository;
-        private readonly ICampaignRepository _campaignRepository; 
+        private readonly ICampaignRepository _campaignRepository;
+        private readonly IConflictCheckService _conflictCheckService;
 
         public BookingService(
             IBookingRepository bookingRepository,
             ISlotRepository slotRepository,
             IUserRepository userRepository,
-            ICampaignRepository campaignRepository)
+            ICampaignRepository campaignRepository,
+            IConflictCheckService conflictCheckService)
         {
             _bookingRepository = bookingRepository;
             _slotRepository = slotRepository;
             _userRepository = userRepository;
             _campaignRepository = campaignRepository;
+            _conflictCheckService = conflictCheckService;
         }
 
-        public async Task<BookingDto> CreateBookingAsync(Guid userId, Guid campaignId, DateTime startTime)
+        public async Task<BookingDto> CreateBookingAsync(Guid userId, Guid campaignId, DateTime startTime, int playersCount = 1)
         {
             // Преобразуем в UTC если Kind не указан
             if (startTime.Kind == DateTimeKind.Unspecified)
             {
                 startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Utc);
             }
+
+            // Валидация playersCount
+            if (playersCount < 1 || playersCount > 8)
+                throw new ArgumentException("Players count must be between 1 and 8");
 
             // Проверяем существование пользователя
             var user = await _userRepository.GetByIdAsync(userId);
@@ -45,6 +52,16 @@ namespace DnDAgency.Application.Services
             if (campaign == null)
                 throw new KeyNotFoundException("Campaign not found");
 
+            if (!campaign.DurationHours.HasValue)
+                throw new InvalidOperationException("Campaign duration is not set");
+
+            var duration = TimeSpan.FromHours(campaign.DurationHours.Value);
+
+            // Проверяем конфликты времени
+            var hasConflict = await _conflictCheckService.HasConflictAsync(campaignId, startTime, duration);
+            if (hasConflict)
+                throw new InvalidOperationException("Time slot conflicts with existing bookings");
+
             // Проверяем, есть ли уже слот на это время
             var existingSlot = await _slotRepository.GetByCampaignAndTimeAsync(campaignId, startTime);
 
@@ -53,15 +70,16 @@ namespace DnDAgency.Application.Services
             if (existingSlot != null)
             {
                 // Проверяем, может ли пользователь забронировать этот слот
-                if (existingSlot.IsFull)
-                    throw new SlotFullException();
-
                 if (existingSlot.IsInPast)
                     throw new PastSlotBookingException();
 
                 // Проверяем, нет ли уже брони у этого пользователя на этот слот
                 if (existingSlot.Bookings.Any(b => b.UserId == userId))
                     throw new ArgumentException("User already has booking for this time slot");
+
+                // Проверяем, хватает ли места для указанного количества игроков
+                if (existingSlot.AvailableSlots < playersCount)
+                    throw new ArgumentException($"Not enough available slots. Available: {existingSlot.AvailableSlots}, Requested: {playersCount}");
 
                 slot = existingSlot;
             }
@@ -74,10 +92,14 @@ namespace DnDAgency.Application.Services
                 if (timeOfDay > campaign.GetMaxStartTime())
                     throw new ArgumentException($"Start time cannot be later than {campaign.GetMaxStartTime()}");
 
-                // Создаем новый слот БЕЗ передачи объекта campaign
+                // Проверяем, хватает ли места в кампании для указанного количества игроков
+                if (campaign.MaxPlayers < playersCount)
+                    throw new ArgumentException($"Not enough slots in campaign. Max players: {campaign.MaxPlayers}, Requested: {playersCount}");
+
+                // Создаем новый слот
                 slot = new Slot(campaignId, startTime);
 
-                // Остальная проверка...
+                // Проверяем, нет ли у пользователя уже брони на эту дату
                 var userBookingOnDate = campaign.Slots
                     .Where(s => s.StartTime.Date == startTime.Date)
                     .SelectMany(s => s.Bookings)
@@ -89,8 +111,8 @@ namespace DnDAgency.Application.Services
                 await _slotRepository.AddAsync(slot);
             }
 
-            // Создаем бронирование
-            var booking = new Booking(userId, slot.Id);
+            // Создаем бронирование с указанием количества игроков
+            var booking = new Booking(userId, slot.Id, playersCount);
             await _bookingRepository.AddAsync(booking);
 
             // Перезагружаем бронирование с полными данными
@@ -127,8 +149,31 @@ namespace DnDAgency.Application.Services
         public async Task<List<SlotDto>> GetAvailableSlotsAsync(Guid campaignId)
         {
             var slots = await _slotRepository.GetAvailableSlotsByCampaignIdAsync(campaignId);
-            return slots.Select(MapSlotToDto).ToList();
+            var availableSlots = new List<SlotDto>();
+
+            foreach (var slot in slots)
+            {
+                var campaign = slot.Campaign;
+                if (!campaign.DurationHours.HasValue)
+                    continue;
+
+                var slotDuration = TimeSpan.FromHours(campaign.DurationHours.Value);
+
+                // Проверяем, не в прошлом ли слот и есть ли свободные места
+                if (!CanBeBooked(slot))
+                    continue;
+
+                // Проверяем пересечение со всеми кампаниями в той же комнате / с мастерами
+                var hasConflict = await _conflictCheckService.HasConflictAsync(campaignId, slot.StartTime, slotDuration);
+
+                // Если конфликта нет, добавляем в доступные
+                if (!hasConflict)
+                    availableSlots.Add(MapSlotToDto(slot));
+            }
+
+            return availableSlots;
         }
+
 
         // --- Helpers ---
 

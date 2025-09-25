@@ -9,5 +9,6 @@ namespace DnDAgency.Application.DTOs.BookingsDTO
 
         [Required]
         public DateTime StartTime { get; set; }
+        public int PlayersCount { get; set; } = 1;
     }
 }

@@ -7,6 +7,6 @@ namespace DnDAgency.Application.Interfaces
         Task<List<BookingDto>> GetUserBookingsAsync(Guid userId);
         Task CancelBookingAsync(Guid bookingId, Guid userId);
         Task<List<SlotDto>> GetAvailableSlotsAsync(Guid campaignId);
-        Task<BookingDto> CreateBookingAsync(Guid userId, Guid campaignId, DateTime startTime);
+        Task<BookingDto> CreateBookingAsync(Guid userId, Guid campaignId, DateTime startTime, int playersCount);
     }
 }

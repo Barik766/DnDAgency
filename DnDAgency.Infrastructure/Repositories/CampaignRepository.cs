@@ -5,7 +5,7 @@ using ApplicationDbContext = DnDAgency.Infrastructure.Data.ApplicationDbContext;
 
 namespace DnDAgency.Infrastructure.Repositories;
 
-public class CampaignRepository : GenericRepository<Campaign>, ICampaignRepository
+public partial class CampaignRepository : GenericRepository<Campaign>, ICampaignRepository
 {
     public CampaignRepository(ApplicationDbContext context) : base(context) { }
 
@@ -14,6 +14,7 @@ public class CampaignRepository : GenericRepository<Campaign>, ICampaignReposito
         return await _dbSet
             .Include(c => c.Masters)
             .Include(c => c.Tags)
+            .Include(c => c.Room)
             .FirstOrDefaultAsync(c => c.Id == id);
     }
 
@@ -25,6 +26,7 @@ public class CampaignRepository : GenericRepository<Campaign>, ICampaignReposito
             .Include(c => c.Slots)
                 .ThenInclude(s => s.Bookings)
                     .ThenInclude(b => b.User)
+            .Include(c => c.Room)
             .AsSplitQuery() // Добавлено для оптимизации
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == id);
