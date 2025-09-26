@@ -3,13 +3,11 @@
     public class Campaign
     {
         public Guid Id { get; private set; } = Guid.NewGuid();
-        public Guid RoomId { get; private set; }
-        public Room Room { get; private set; }
-        public RoomType RoomType => Room.Type; 
+        public List<Room> Rooms { get; private set; } = new();
+        public List<Master> Masters { get; private set; } = new();
         public string Title { get; private set; }
         public string Description { get; private set; }
-        public List<Master> Masters { get; private set; } = new();
-
+        
         public decimal Price { get; private set; }
 
         public string ImageUrl { get; private set; }
@@ -39,7 +37,7 @@
         decimal price,
         string imageUrl,
         int level,
-        Guid roomId,
+        List<Room> rooms,
         int maxPlayers = 8,
         double? durationHours = null,
         List<Master>? masters = null)
@@ -56,7 +54,7 @@
                 Price = price;
                 ImageUrl = imageUrl;
                 Level = level;
-                RoomId = roomId;
+                Rooms = rooms ?? new List<Room>();
                 MaxPlayers = maxPlayers;
                 DurationHours = durationHours;
 
@@ -197,6 +195,9 @@
 
             return WorkingHoursEnd.Subtract(TimeSpan.FromHours(DurationHours.Value));
         }
+
+        public bool SupportsRoomType(RoomType roomType) =>
+        Rooms.Any(r => r.Type == roomType);
 
     }
 }

@@ -34,7 +34,8 @@ namespace DnDAgency.Infrastructure.Repositories
                 .Include(c => c.Masters)
                 .Include(c => c.Slots)
                     .ThenInclude(s => s.Bookings)
-                .Where(c => c.RoomId == roomId && c.IsActive)
+                .Include(c => c.Rooms)
+                .Where(c => c.Rooms.Any(r => r.Id == roomId) && c.IsActive)
                 .AsNoTracking()
                 .ToListAsync();
         }
@@ -45,9 +46,9 @@ namespace DnDAgency.Infrastructure.Repositories
                 .Include(c => c.Masters)
                 .Include(c => c.Slots)
                     .ThenInclude(s => s.Bookings)
-                .Include(c => c.Room)
+                .Include(c => c.Rooms)
                 .Where(c => c.Masters.Any(m => m.Id == masterId) &&
-                           c.Room.Type == RoomType.Online &&
+                           c.Rooms.Any(r => r.Type == RoomType.Online) &&
                            c.IsActive)
                 .AsNoTracking()
                 .ToListAsync();

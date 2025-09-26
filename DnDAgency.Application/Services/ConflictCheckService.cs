@@ -25,18 +25,22 @@ namespace DnDAgency.Application.Services
             if (campaign == null)
                 throw new KeyNotFoundException("Campaign not found");
 
-            var room = await _roomRepository.GetByIdAsync(campaign.RoomId);
-            if (room == null)
-                throw new KeyNotFoundException("Room not found");
-
             var endTime = startTime.Add(duration);
 
-            return room.Type switch
+            // Проверяем конфликты для каждого типа комнат в кампании
+            foreach (var room in campaign.Rooms)
             {
-                RoomType.Physical => await CheckPhysicalRoomConflictAsync(campaign.RoomId, startTime, endTime),
-                RoomType.Online => await CheckOnlineMasterConflictAsync(campaign.Masters, startTime, endTime),
-                _ => throw new ArgumentException("Unknown room type")
-            };
+                bool hasConflict = room.Type switch
+                {
+                    RoomType.Physical => await CheckPhysicalRoomConflictAsync(room.Id, startTime, endTime),
+                    RoomType.Online => await CheckOnlineMasterConflictAsync(campaign.Masters, startTime, endTime),
+                    _ => throw new ArgumentException("Unknown room type")
+                };
+
+                if (hasConflict) return true;
+            }
+
+            return false;
         }
 
         private async Task<bool> CheckPhysicalRoomConflictAsync(Guid roomId, DateTime startTime, DateTime endTime)

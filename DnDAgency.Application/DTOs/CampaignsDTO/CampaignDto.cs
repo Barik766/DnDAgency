@@ -20,5 +20,6 @@
         public bool HasAvailableSlots { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public List<string> SupportedRoomTypes { get; set; } = new(); // ["Physical", "Online"]
     }
 }

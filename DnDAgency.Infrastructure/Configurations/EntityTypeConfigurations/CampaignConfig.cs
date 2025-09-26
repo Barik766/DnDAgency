@@ -36,21 +36,7 @@ public class CampaignConfig : IEntityTypeConfiguration<Campaign>
 
         // Связь многие-ко-многим с Master
         builder.HasMany(c => c.Masters)
-               .WithMany(m => m.Campaigns)
-               .UsingEntity<Dictionary<string, object>>(
-                   "CampaignMaster",
-                   j => j.HasOne<Master>()
-                         .WithMany()
-                         .HasForeignKey("MasterId")
-                         .OnDelete(DeleteBehavior.Cascade),
-                   j => j.HasOne<Campaign>()
-                         .WithMany()
-                         .HasForeignKey("CampaignId")
-                         .OnDelete(DeleteBehavior.Cascade),
-                   j =>
-                   {
-                       j.HasKey("CampaignId", "MasterId");
-                   });
+               .WithMany(m => m.Campaigns);
 
         // Связь с Slots
         builder.HasMany(c => c.Slots)
@@ -63,5 +49,10 @@ public class CampaignConfig : IEntityTypeConfiguration<Campaign>
                .WithOne(t => t.Campaign)
                .HasForeignKey(t => t.CampaignId)
                .OnDelete(DeleteBehavior.Cascade);
+
+        // Связь многие-ко-многим с Room
+        builder.HasMany(c => c.Rooms)
+               .WithMany(r => r.Campaigns);
+               
     }
 }

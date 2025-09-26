@@ -33,12 +33,14 @@ public class GenericRepository<T> : IRepository<T> where T : class
 
     public async Task UpdateAsync(T entity)
     {
-        // НЕ вызываем _dbSet.Update() если сущность уже отслеживается!
-        // EF автоматически отследит изменения
-        if (_context.Entry(entity).State == EntityState.Detached)
+        // Проверяем состояние сущности
+        var entry = _context.Entry(entity);
+
+        if (entry.State == EntityState.Detached)
         {
             _dbSet.Update(entity);
         }
+        // Если сущность уже отслеживается, просто сохраняем изменения
 
         await _context.SaveChangesAsync();
     }

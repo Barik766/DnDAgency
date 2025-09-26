@@ -13,4 +13,9 @@ public interface ICampaignRepository : IRepository<Campaign>
     Task<List<Campaign>> GetCampaignCatalogAsync();
     Task<List<Campaign>> GetByRoomIdAsync(Guid roomId);
     Task<List<Campaign>> GetOnlineCampaignsByMasterIdAsync(Guid masterId);
+    Task<Campaign?> GetByIdWithSlotsAsync(Guid id);
+    Task<List<Master>> GetMastersByIdsAsync(List<Guid> masterIds);
+    Task<List<Room>> GetRoomsByIdsAsync(List<Guid> roomIds);
+    Task<List<Room>> GetRoomsByTypesAsync(List<string> roomTypes);
+    Task UpdateCampaignRoomsAsync(Guid campaignId, List<Guid> roomIds);
 }

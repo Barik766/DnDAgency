@@ -95,4 +95,36 @@ public partial class SlotRepository : GenericRepository<Slot>, ISlotRepository
                                 s.StartTime.Date == startTime.Date &&
                                 s.StartTime.TimeOfDay == startTime.TimeOfDay);
     }
+
+    public async Task<List<ConflictSlot>> GetBookedSlotsForRoomAndDateAsync(Guid roomId, DateTime date)
+    {
+        var utcDate = DateTime.SpecifyKind(date.Date, DateTimeKind.Utc);
+        return await _dbSet
+            .Include(s => s.Campaign)
+                .ThenInclude(c => c.Rooms)
+            .Include(s => s.Bookings)
+            .Where(s => s.Campaign.Rooms.Any(r => r.Id == roomId) &&
+                       s.Campaign.IsActive &&
+                       s.Campaign.DurationHours.HasValue &&
+                       s.StartTime.Date == utcDate.Date &&
+                       s.Bookings.Any())
+            .Select(s => new ConflictSlot
+            {
+                Id = s.Id,
+                StartTime = s.StartTime,
+                EndTime = s.StartTime.AddHours(s.Campaign.DurationHours.Value),
+                CampaignId = s.Campaign.Id
+            })
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
+    public async Task<Dictionary<Guid, int>> GetPlayersCountForSlotsAsync(List<Guid> slotIds)
+    {
+        return await _context.Set<Booking>()
+            .Where(b => slotIds.Contains(b.SlotId))
+            .GroupBy(b => b.SlotId)
+            .Select(g => new { SlotId = g.Key, Count = g.Sum(b => b.PlayersCount) })
+            .ToDictionaryAsync(x => x.SlotId, x => x.Count);
+    }
 }

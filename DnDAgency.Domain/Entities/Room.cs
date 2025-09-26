@@ -3,13 +3,14 @@
     public class Room
     {
         public Guid Id { get; private set; } = Guid.NewGuid();
+        public List<Campaign> Campaigns { get; private set; } = new();
         public string Name { get; private set; }
         public RoomType Type { get; private set; }
         public int? Capacity { get; private set; } // Null для Online
         public bool IsActive { get; private set; } = true;
         public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
 
-        public List<Campaign> Campaigns { get; private set; } = new();
+
 
         private Room() { } // EF Core
 

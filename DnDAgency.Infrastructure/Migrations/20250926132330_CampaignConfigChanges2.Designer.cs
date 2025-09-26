@@ -3,6 +3,7 @@ using System;
 using DnDAgency.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DnDAgency.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250926132330_CampaignConfigChanges2")]
+    partial class CampaignConfigChanges2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -39,15 +42,15 @@ namespace DnDAgency.Infrastructure.Migrations
 
             modelBuilder.Entity("CampaignRoom", b =>
                 {
-                    b.Property<Guid>("CampaignsId")
+                    b.Property<Guid>("CampaignId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("RoomsId")
+                    b.Property<Guid>("RoomId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("CampaignsId", "RoomsId");
+                    b.HasKey("CampaignId", "RoomId");
 
-                    b.HasIndex("RoomsId");
+                    b.HasIndex("RoomId");
 
                     b.ToTable("CampaignRoom");
                 });
@@ -374,13 +377,13 @@ namespace DnDAgency.Infrastructure.Migrations
                 {
                     b.HasOne("DnDAgency.Domain.Entities.Campaign", null)
                         .WithMany()
-                        .HasForeignKey("CampaignsId")
+                        .HasForeignKey("CampaignId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("DnDAgency.Domain.Entities.Room", null)
                         .WithMany()
-                        .HasForeignKey("RoomsId")
+                        .HasForeignKey("RoomId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

@@ -7,6 +7,7 @@ public class UpdateCampaignDto
     public decimal? Price { get; set; }
     public IFormFile? ImageFile { get; set; }
     public int? Level { get; set; }
+    public List<string>? SupportedRoomTypes { get; set; }
     public int? MaxPlayers { get; set; }
     public List<string> Tags { get; set; } = new();
     public int? DurationHours { get; set; }

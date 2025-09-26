@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using DnDAgency.Infrastructure.Interfaces;
 using DnDAgency.Infrastructure.Services;
 using Microsoft.Extensions.FileProviders;
+using DnDAgency.Infrastructure.UnitOfWork;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,6 +49,7 @@ builder.Services.AddScoped<ICampaignService, CampaignService>();
 builder.Services.AddScoped<IMasterService, MasterService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IConflictCheckService, ConflictCheckService>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 builder.Services.AddSingleton<IFileStorageService>(
     new LocalFileStorageService(

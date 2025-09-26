@@ -31,7 +31,7 @@ namespace DnDAgency.Application.Services
         // --- Получение данных ---
         public async Task<List<CampaignDto>> GetAllAsync()
         {
-            var campaigns = await _campaignRepository.GetActiveCampaignsAsync();
+            var campaigns = await _campaignRepository.GetAllAsync();
             return campaigns.Select(MapToDto).ToList();
         }
 
@@ -54,17 +54,28 @@ namespace DnDAgency.Application.Services
                 var master = await _masterRepository.GetByIdAsync(currentUserId.Value);
                 if (master == null)
                     throw new KeyNotFoundException("Master not found");
-
                 masters.Add(master);
             }
             else if (role == "Admin" && dto.MasterIds.Any())
             {
-                foreach (var masterId in dto.MasterIds)
+                // Batch-загрузка мастеров вместо N+1 запросов
+                masters = await _campaignRepository.GetMastersByIdsAsync(dto.MasterIds);
+
+                // Проверяем, что все запрошенные мастера найдены
+                if (masters.Count != dto.MasterIds.Count)
                 {
-                    var master = await _masterRepository.GetByIdAsync(masterId);
-                    if (master != null)
-                        masters.Add(master);
+                    var foundIds = masters.Select(m => m.Id).ToHashSet();
+                    var notFound = dto.MasterIds.Where(id => !foundIds.Contains(id)).ToList();
+                    throw new KeyNotFoundException($"Masters not found: {string.Join(", ", notFound)}");
                 }
+            }
+
+            var rooms = await _campaignRepository.GetRoomsByIdsAsync(dto.RoomIds);
+            if (rooms.Count != dto.RoomIds.Count)
+            {
+                var foundIds = rooms.Select(r => r.Id).ToHashSet();
+                var notFound = dto.RoomIds.Where(id => !foundIds.Contains(id)).ToList();
+                throw new KeyNotFoundException($"Rooms not found: {string.Join(", ", notFound)}");
             }
 
             string? imageUrl = null;
@@ -77,7 +88,7 @@ namespace DnDAgency.Application.Services
                 dto.Price,
                 imageUrl,
                 dto.Level,
-                dto.RoomId,
+                rooms, // вместо dto.RoomId
                 dto.MaxPlayers,
                 dto.DurationHours,
                 masters
@@ -106,7 +117,6 @@ namespace DnDAgency.Application.Services
         // --- Обновление кампании ---
         public async Task<CampaignDto> UpdateAsync(Guid id, UpdateCampaignDto dto, Guid currentUserId, string role, Guid? masterUserId = null)
         {
-            // Получаем сущность БЕЗ AsNoTracking, чтобы EF мог её отслеживать
             var campaign = await _campaignRepository.GetByIdForUpdateAsync(id);
             if (campaign == null)
                 throw new KeyNotFoundException("Campaign not found");
@@ -134,30 +144,47 @@ namespace DnDAgency.Application.Services
                 campaign.UpdateImageUrl(imageUrl);
             }
 
-            // Обработка тегов - правильный способ для EF
+            // Обработка тегов
             if (dto.Tags != null)
             {
                 await _campaignRepository.UpdateCampaignTagsAsync(campaign.Id, dto.Tags);
             }
 
-            // Обработка мастеров (только для админа)
+            // Обработка мастеров (только для админа) - batch-загрузка
             if (role == "Admin" && dto.MasterIds != null)
             {
-                // Очищаем список мастеров
                 campaign.Masters.Clear();
 
-                // Добавляем новых мастеров
-                foreach (var masterId in dto.MasterIds)
+                if (dto.MasterIds.Any())
                 {
-                    var master = await _masterRepository.GetByIdAsync(masterId);
-                    if (master != null)
+                    var newMasters = await _campaignRepository.GetMastersByIdsAsync(dto.MasterIds);
+
+                    // Проверяем, что все мастера найдены
+                    if (newMasters.Count != dto.MasterIds.Count)
+                    {
+                        var foundIds = newMasters.Select(m => m.Id).ToHashSet();
+                        var notFound = dto.MasterIds.Where(id => !foundIds.Contains(id)).ToList();
+                        throw new KeyNotFoundException($"Masters not found: {string.Join(", ", notFound)}");
+                    }
+
+                    foreach (var master in newMasters)
                         campaign.Masters.Add(master);
                 }
             }
 
-            // Сохраняем изменения ОДИН раз
-            await _campaignRepository.SaveChangesAsync();
+            // Обработка комнат (supportedRoomTypes)
+            if (dto.SupportedRoomTypes != null)
+            {
+                var roomIds = dto.SupportedRoomTypes.Any()
+                    ? (await _campaignRepository.GetRoomsByTypesAsync(dto.SupportedRoomTypes))
+                          .Select(r => r.Id).ToList()
+                    : new List<Guid>();
 
+                await _campaignRepository.UpdateCampaignRoomsAsync(campaign.Id, roomIds);
+            }
+
+
+            await _campaignRepository.SaveChangesAsync();
             return MapToDto(campaign);
         }
 
@@ -184,7 +211,7 @@ namespace DnDAgency.Application.Services
         // --- Переключение активности ---
         public async Task<CampaignDto> ToggleStatusAsync(Guid id, Guid currentUserId, string role, Guid? masterUserId = null)
         {
-            var campaign = await _campaignRepository.GetByIdAsync(id);
+            var campaign = await _campaignRepository.GetByIdForUpdateAsync(id); // Вместо GetByIdAsync
             if (campaign == null)
                 throw new KeyNotFoundException("Campaign not found");
 
@@ -195,7 +222,7 @@ namespace DnDAgency.Application.Services
             else
                 campaign.Activate();
 
-            await _campaignRepository.UpdateAsync(campaign);
+            await _campaignRepository.SaveChangesAsync(); // Вместо UpdateAsync
             return MapToDto(campaign);
         }
 
@@ -228,22 +255,31 @@ namespace DnDAgency.Application.Services
 
         public async Task<List<AvailableTimeSlot>> GetAvailableTimeSlotsAsync(Guid campaignId, DateTime date, RoomType roomType)
         {
-            var campaign = await _campaignRepository.GetByIdAsync(campaignId);
-            if (campaign == null || !campaign.DurationHours.HasValue || campaign.Room.Type != roomType)
+            var campaign = await _campaignRepository.GetByIdWithSlotsAsync(campaignId);
+            if (campaign == null || !campaign.DurationHours.HasValue || !campaign.SupportsRoomType(roomType))
                 return new List<AvailableTimeSlot>();
 
-            // ЗАГРУЖАЕМ ВСЕ КОНФЛИКТУЮЩИЕ СЛОТЫ ОДНИМ ЗАПРОСОМ
-            var roomConflicts = await GetAllRoomConflictsAsync(campaign.RoomId, date);
+            // Получаем конкретную комнату нужного типа
+            var room = campaign.Rooms.FirstOrDefault(r => r.Type == roomType);
+            if (room == null)
+                return new List<AvailableTimeSlot>();
+
+            var roomConflicts = await _slotRepository.GetBookedSlotsForRoomAndDateAsync(room.Id, date);
+            var existingSlots = campaign.Slots.Where(s => s.StartTime.Date == date.Date).ToList();
+
+            // Получаем количество игроков одним запросом
+            var slotIds = existingSlots.Select(s => s.Id).ToList();
+            var playersCount = slotIds.Any()
+                ? await _slotRepository.GetPlayersCountForSlotsAsync(slotIds)
+                : new Dictionary<Guid, int>();
 
             var duration = TimeSpan.FromHours(campaign.DurationHours.Value);
-            var existingSlots = campaign.Slots.Where(s => s.StartTime.Date == date.Date).ToList();
             var result = new List<AvailableTimeSlot>();
-
             var currentTime = campaign.WorkingHoursStart;
+
             while (currentTime <= campaign.GetMaxStartTime())
             {
-                var slotDateTime = date.Date.ToUniversalTime().Add(currentTime);
-
+                var slotDateTime = DateTime.SpecifyKind(date.Date, DateTimeKind.Utc).Add(currentTime);
                 if (slotDateTime <= DateTime.UtcNow)
                 {
                     currentTime = currentTime.Add(TimeSpan.FromHours(1));
@@ -251,29 +287,27 @@ namespace DnDAgency.Application.Services
                 }
 
                 var existingSlot = existingSlots.FirstOrDefault(s => s.StartTime == slotDateTime);
-                bool isAvailable = existingSlot?.IsFull != true;
+                var currentPlayers = existingSlot != null ? playersCount.GetValueOrDefault(existingSlot.Id, 0) : 0;
+                bool isAvailable = currentPlayers < campaign.MaxPlayers;
 
-                // ПРОВЕРЯЕМ КОНФЛИКТЫ БЕЗ ЗАПРОСОВ К БД
                 if (isAvailable && HasTimeConflict(slotDateTime, duration, roomConflicts, existingSlot?.Id))
                 {
                     isAvailable = false;
                 }
 
-                if (isAvailable) // ДОБАВЛЯЕМ ТОЛЬКО ДОСТУПНЫЕ
+                if (isAvailable)
                 {
                     result.Add(new AvailableTimeSlot
                     {
                         DateTime = slotDateTime,
                         IsAvailable = true,
-                        CurrentPlayers = existingSlot?.CurrentPlayers ?? 0,
+                        CurrentPlayers = currentPlayers,
                         MaxPlayers = campaign.MaxPlayers,
                         RoomType = roomType
                     });
                 }
-
                 currentTime = currentTime.Add(TimeSpan.FromHours(1));
             }
-
             return result;
         }
 
@@ -347,7 +381,8 @@ namespace DnDAgency.Application.Services
                 IsActive = campaign.IsActive,
                 HasAvailableSlots = campaign.HasAvailableSlots,
                 CreatedAt = campaign.CreatedAt,
-                UpdatedAt = campaign.UpdatedAt ?? campaign.CreatedAt
+                UpdatedAt = campaign.UpdatedAt ?? campaign.CreatedAt,
+                SupportedRoomTypes = campaign.Rooms.Select(r => r.Type.ToString()).Distinct().ToList()
             };
         }
 
@@ -356,6 +391,9 @@ namespace DnDAgency.Application.Services
             var campaign = slot.Campaign ?? throw new InvalidOperationException("Slot must have a campaign reference");
             var currentPlayers = slot.Bookings.Count;
             var availableSlots = campaign.MaxPlayers - currentPlayers;
+
+            // Берем первую комнату для отображения типа (или можно добавить логику выбора)
+            var roomType = campaign.Rooms.FirstOrDefault()?.Type ?? RoomType.Physical;
 
             return new SlotDto
             {
@@ -366,43 +404,12 @@ namespace DnDAgency.Application.Services
                 AvailableSlots = availableSlots,
                 IsFull = availableSlots <= 0,
                 IsInPast = slot.StartTime < DateTime.UtcNow,
-                RoomType = campaign.Room.Type
-
+                RoomType = roomType // изменено с campaign.Room.Type
             };
         }
 
 
         // --- Вспомогательные методы для проверки конфликтов ---
-
-        private async Task<List<ConflictSlot>> GetAllRoomConflictsAsync(Guid roomId, DateTime date)
-        {
-            var conflicts = new List<ConflictSlot>();
-
-            // Получаем все кампании в этой комнате
-            var roomCampaigns = await _campaignRepository.GetByRoomIdAsync(roomId);
-
-            foreach (var campaign in roomCampaigns)
-            {
-                if (!campaign.DurationHours.HasValue) continue;
-
-                var duration = TimeSpan.FromHours(campaign.DurationHours.Value);
-
-                // Получаем слоты с бронированиями в указанную дату
-                var bookedSlots = campaign.Slots
-                    .Where(s => s.StartTime.Date == date.Date && s.CurrentPlayers > 0)
-                    .Select(s => new ConflictSlot
-                    {
-                        Id = s.Id,
-                        StartTime = s.StartTime,
-                        EndTime = s.StartTime.Add(duration),
-                        CampaignId = campaign.Id
-                    });
-
-                conflicts.AddRange(bookedSlots);
-            }
-
-            return conflicts;
-        }
 
         private bool HasTimeConflict(DateTime startTime, TimeSpan duration, List<ConflictSlot> conflicts, Guid? excludeSlotId = null)
         {
