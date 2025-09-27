@@ -15,6 +15,9 @@ namespace DnDAgency.Infrastructure.UnitOfWork
         private ICampaignRepository? _campaigns;
         private ISlotRepository? _slots;
         private IMasterRepository? _masters;
+        private IUserRepository? _users;
+        private IBookingRepository? _bookings;
+        private IRefreshTokenRepository? _refreshTokens;
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -29,6 +32,15 @@ namespace DnDAgency.Infrastructure.UnitOfWork
 
         public IMasterRepository Masters =>
             _masters ??= new MasterRepository(_context);
+
+        public IUserRepository Users =>
+            _users ??= new UserRepository(_context);
+
+        public IBookingRepository Bookings =>
+            _bookings ??= new BookingRepository(_context);
+
+        public IRefreshTokenRepository RefreshTokens =>
+            _refreshTokens ??= new RefreshTokenRepository(_context);
 
         public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {

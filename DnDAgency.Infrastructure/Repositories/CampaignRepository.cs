@@ -172,12 +172,4 @@ public partial class CampaignRepository : GenericRepository<Campaign>, ICampaign
     }
 
 
-
-
-    public async Task SaveChangesAsync()
-    {
-
-        await _context.SaveChangesAsync();
-    }
-
 }

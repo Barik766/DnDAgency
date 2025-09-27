@@ -1,4 +1,5 @@
 ﻿using DnDAgency.Domain.Entities;
+using DnDAgency.Domain.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,12 +8,9 @@ using System.Threading.Tasks;
 
 namespace DnDAgency.Application.Interfaces
 {
-    public interface IRefreshTokenRepository
+    public interface IRefreshTokenRepository : IRepository<RefreshToken>
     {
-        Task AddAsync(RefreshToken token);
         Task<RefreshToken?> GetByTokenAsync(string token);
-        Task UpdateAsync(RefreshToken token);
-        Task DeleteAsync(RefreshToken token);
     }
 
 }

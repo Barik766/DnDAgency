@@ -1,4 +1,4 @@
-﻿// IUnitOfWork.cs
+﻿using DnDAgency.Application.Interfaces;
 using DnDAgency.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -9,7 +9,9 @@ namespace DnDAgency.Infrastructure.Interfaces
         ICampaignRepository Campaigns { get; }
         ISlotRepository Slots { get; }
         IMasterRepository Masters { get; }
-        // Добавьте другие репозитории по необходимости
+        IUserRepository Users { get; }
+        IBookingRepository Bookings { get; }
+        IRefreshTokenRepository RefreshTokens { get; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
         Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);

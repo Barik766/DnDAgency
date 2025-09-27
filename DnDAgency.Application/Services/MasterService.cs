@@ -3,43 +3,35 @@ using DnDAgency.Application.DTOs.MastersDTO;
 using DnDAgency.Application.DTOs.UsersDTO;
 using DnDAgency.Application.Interfaces;
 using DnDAgency.Domain.Entities;
-using DnDAgency.Domain.Interfaces;
 using DnDAgency.Infrastructure.Interfaces;
-using Microsoft.AspNetCore.Http;
 
 namespace DnDAgency.Application.Services
 {
     public class MasterService : IMasterService
     {
-        private readonly IMasterRepository _masterRepository;
-        private readonly IUserRepository _userRepository;
-        private readonly ICampaignRepository _campaignRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IFileStorageService _fileStorageService;
         private readonly IUserService _userService;
 
         public MasterService(
-            IMasterRepository masterRepository,
-            IUserRepository userRepository,
-            ICampaignRepository campaignRepository,
+            IUnitOfWork unitOfWork,
             IFileStorageService fileStorageService,
             IUserService userService)
         {
-            _masterRepository = masterRepository;
-            _userRepository = userRepository;
-            _campaignRepository = campaignRepository;
+            _unitOfWork = unitOfWork;
             _fileStorageService = fileStorageService;
             _userService = userService;
         }
 
         public async Task<List<MasterDto>> GetAllAsync()
         {
-            var masters = await _masterRepository.GetAllAsync();
+            var masters = await _unitOfWork.Masters.GetAllAsync();
             return masters.Where(m => m.IsActive).Select(MapToDto).ToList();
         }
 
         public async Task<MasterDto> GetByIdAsync(Guid id)
         {
-            var master = await _masterRepository.GetByIdAsync(id);
+            var master = await _unitOfWork.Masters.GetByIdAsync(id);
             if (master == null || !master.IsActive)
                 throw new KeyNotFoundException("Master not found");
 
@@ -48,57 +40,78 @@ namespace DnDAgency.Application.Services
 
         public async Task<MasterDto> CreateFromUserAsync(Guid userId, string bio)
         {
-            var user = await _userRepository.GetByIdAsync(userId);
-            if (user == null)
-                throw new KeyNotFoundException("User not found");
+            using var transaction = await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                var user = await _unitOfWork.Users.GetByIdAsync(userId);
+                if (user == null)
+                    throw new KeyNotFoundException("User not found");
 
-            if (!user.IsMaster)
-                throw new ArgumentException("User must have Master role to create master profile");
+                if (!user.IsMaster)
+                    throw new ArgumentException("User must have Master role to create master profile");
 
-            var allMasters = await _masterRepository.GetAllAsync();
-            if (allMasters.Any(m => m.UserId == userId))
-                throw new ArgumentException("Master profile already exists for this user");
+                var allMasters = await _unitOfWork.Masters.GetAllAsync();
+                if (allMasters.Any(m => m.UserId == userId))
+                    throw new ArgumentException("Master profile already exists for this user");
 
-            var master = new Master(userId, user.Username, bio);
-            await _masterRepository.AddAsync(master);
+                var master = new Master(userId, user.Username, bio);
+                await _unitOfWork.Masters.AddAsync(master);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransactionAsync();
 
-            return MapToDto(master);
+                return MapToDto(master);
+            }
+            catch
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw;
+            }
         }
 
         public async Task<MasterDto> AdminCreateMasterAsync(AdminCreateMasterDto dto)
         {
             if (dto == null) throw new ArgumentNullException(nameof(dto));
 
-            // 1. Создаём нового пользователя через IUserService
-            var userDto = await _userService.CreateAsync(dto.Username, dto.Email, dto.Password);
-
-            // 2. Получаем сущность пользователя
-            var userEntity = await _userRepository.GetByIdAsync(userDto.Id);
-            if (userEntity == null)
-                throw new Exception("Failed to create user for master");
-
-            // 3. Ставим роль Master и создаём профиль мастера
-            userEntity.PromoteToMaster();
-            var master = userEntity.CreateMasterProfile(dto.Bio);
-
-            // 4. Сохраняем фото, если есть
-            if (dto.Photo != null)
+            using var transaction = await _unitOfWork.BeginTransactionAsync();
+            try
             {
-                var photoUrl = await _fileStorageService.SaveFileAsync(dto.Photo, "masters");
-                typeof(Master).GetProperty("PhotoUrl")?.SetValue(master, photoUrl);
+                // 1. Создаём нового пользователя через IUserService
+                var userDto = await _userService.CreateAsync(dto.Username, dto.Email, dto.Password);
+
+                // 2. Получаем сущность пользователя
+                var userEntity = await _unitOfWork.Users.GetByIdAsync(userDto.Id);
+                if (userEntity == null)
+                    throw new Exception("Failed to create user for master");
+
+                // 3. Ставим роль Master и создаём профиль мастера
+                userEntity.PromoteToMaster();
+                var master = userEntity.CreateMasterProfile(dto.Bio);
+
+                // 4. Сохраняем фото, если есть
+                if (dto.Photo != null)
+                {
+                    var photoUrl = await _fileStorageService.SaveFileAsync(dto.Photo, "masters");
+                    typeof(Master).GetProperty("PhotoUrl")?.SetValue(master, photoUrl);
+                }
+
+                // 5. Сохраняем мастер-профиль в репозитории
+                await _unitOfWork.Masters.AddAsync(master);
+                _unitOfWork.Users.Update(userEntity);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransactionAsync();
+
+                return MapAdminDto(master);
             }
-
-            // 5. Сохраняем мастер-профиль в репозитории
-            await _masterRepository.AddAsync(master);
-            await _userRepository.UpdateAsync(userEntity);
-
-            return MapAdminDto(master);
+            catch
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw;
+            }
         }
-
 
         public async Task<MasterDto> UpdateAsync(Guid id, UpdateMasterDto dto, Guid currentUserId)
         {
-            var master = await _masterRepository.GetByIdAsync(id);
+            var master = await _unitOfWork.Masters.GetByIdAsync(id);
             if (master == null)
                 throw new KeyNotFoundException("Master not found");
 
@@ -111,13 +124,14 @@ namespace DnDAgency.Application.Services
             if (!string.IsNullOrEmpty(dto.Name))
                 master.UpdateName(dto.Name);
 
-            await _masterRepository.UpdateAsync(master);
+            _unitOfWork.Masters.Update(master);
+            await _unitOfWork.SaveChangesAsync();
             return MapToDto(master);
         }
 
         public async Task DeactivateAsync(Guid id, Guid currentUserId)
         {
-            var master = await _masterRepository.GetByIdAsync(id);
+            var master = await _unitOfWork.Masters.GetByIdAsync(id);
             if (master == null)
                 throw new KeyNotFoundException("Master not found");
 
@@ -125,33 +139,42 @@ namespace DnDAgency.Application.Services
                 throw new UnauthorizedAccessException("Can only deactivate own master profile");
 
             master.Deactivate();
-            await _masterRepository.UpdateAsync(master);
+            _unitOfWork.Masters.Update(master);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task<List<CampaignDto>> GetMasterCampaignsAsync(Guid userId)
         {
-            var campaigns = await _campaignRepository.GetByUserIdAsync(userId);
+            var campaigns = await _unitOfWork.Campaigns.GetByUserIdAsync(userId);
             return campaigns.Where(c => c.IsActive).Select(MapCampaignToDto).ToList();
         }
 
         public async Task AddCampaignToMasterAsync(Guid masterId, Guid campaignId)
         {
-            var master = await _masterRepository.GetByIdAsync(masterId);
-            if (master == null || !master.IsActive)
-                throw new KeyNotFoundException("Master not found");
+            using var transaction = await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                var master = await _unitOfWork.Masters.GetByIdAsync(masterId);
+                if (master == null || !master.IsActive)
+                    throw new KeyNotFoundException("Master not found");
 
-            var campaign = await _campaignRepository.GetByIdAsync(campaignId);
-            if (campaign == null || !campaign.IsActive)
-                throw new KeyNotFoundException("Campaign not found");
+                var campaign = await _unitOfWork.Campaigns.GetByIdForUpdateAsync(campaignId);
+                if (campaign == null || !campaign.IsActive)
+                    throw new KeyNotFoundException("Campaign not found");
 
-            // Проверка: не добавлена ли уже эта кампания
-            if (campaign.Masters.Any(m => m.Id == master.Id))
-                throw new InvalidOperationException("Campaign is already assigned to this master");
+                // Проверка: не добавлена ли уже эта кампания
+                if (campaign.Masters.Any(m => m.Id == master.Id))
+                    throw new InvalidOperationException("Campaign is already assigned to this master");
 
-            campaign.Masters.Add(master);
-
-            await _campaignRepository.UpdateAsync(campaign);
-            await _campaignRepository.SaveChangesAsync();
+                campaign.Masters.Add(master);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransactionAsync();
+            }
+            catch
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw;
+            }
         }
 
         public async Task AssignCampaignsAsync(Guid userId, List<Guid> campaignIds, Guid currentUserId)
@@ -159,28 +182,36 @@ namespace DnDAgency.Application.Services
             if (userId != currentUserId)
                 throw new UnauthorizedAccessException("You can only assign campaigns to your own profile");
 
-            // Получаем мастера с кампаниями для отслеживания
-            var master = await _masterRepository.GetByUserIdAsync(userId);
-            if (master == null || !master.IsActive)
-                throw new KeyNotFoundException("Master not found");
-
-            // Очищаем текущие связи
-            master.Campaigns.Clear();
-
-            // Добавляем только выбранные кампании
-            foreach (var campaignId in campaignIds)
+            using var transaction = await _unitOfWork.BeginTransactionAsync();
+            try
             {
-                var campaign = await _campaignRepository.GetByIdForUpdateAsync(campaignId);
-                if (campaign == null || !campaign.IsActive)
-                    continue; // пропускаем несуществующие
+                // Получаем мастера с кампаниями для отслеживания
+                var master = await _unitOfWork.Masters.GetByUserIdAsync(userId);
+                if (master == null || !master.IsActive)
+                    throw new KeyNotFoundException("Master not found");
 
-                master.Campaigns.Add(campaign);
+                // Очищаем текущие связи
+                master.Campaigns.Clear();
+
+                // Добавляем только выбранные кампании
+                foreach (var campaignId in campaignIds)
+                {
+                    var campaign = await _unitOfWork.Campaigns.GetByIdForUpdateAsync(campaignId);
+                    if (campaign == null || !campaign.IsActive)
+                        continue; // пропускаем несуществующие
+
+                    master.Campaigns.Add(campaign);
+                }
+
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransactionAsync();
             }
-
-            await _masterRepository.UpdateAsync(master);
+            catch
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw;
+            }
         }
-
-
 
         // --- Мапперы ---
         private static MasterDto MapToDto(Master master)

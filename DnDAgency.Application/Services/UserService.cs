@@ -3,7 +3,7 @@ using DnDAgency.Application.DTOs.MastersDTO;
 using DnDAgency.Application.DTOs.UsersDTO;
 using DnDAgency.Application.Interfaces;
 using DnDAgency.Domain.Entities;
-using DnDAgency.Domain.Interfaces;
+using DnDAgency.Infrastructure.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -15,42 +15,51 @@ namespace DnDAgency.Application.Services
 {
     public class UserService : IUserService
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IRefreshTokenRepository _refreshTokenRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _configuration;
 
         public UserService(
-            IUserRepository userRepository,
-            IRefreshTokenRepository refreshTokenRepository,
+            IUnitOfWork unitOfWork,
             IConfiguration configuration)
         {
-            _userRepository = userRepository;
-            _refreshTokenRepository = refreshTokenRepository;
+            _unitOfWork = unitOfWork;
             _configuration = configuration;
         }
 
         public async Task<UserDto> CreateAsync(string username, string email, string password)
         {
-            var existingUser = await _userRepository.GetByEmailAsync(email);
-            if (existingUser != null)
-                throw new ArgumentException("User with this email already exists");
+            using var transaction = await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                var existingUser = await _unitOfWork.Users.GetByEmailAsync(email);
+                if (existingUser != null)
+                    throw new ArgumentException("User with this email already exists");
 
-            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
-            var user = new User(username, email, hashedPassword);
+                var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
+                var user = new User(username, email, hashedPassword);
 
-            await _userRepository.AddAsync(user);
-            return MapToDto(user);
+                await _unitOfWork.Users.AddAsync(user);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransactionAsync();
+                
+                return MapToDto(user);
+            }
+            catch
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw;
+            }
         }
 
         public async Task<List<UserDto>> GetAllAsync()
         {
-            var users = await _userRepository.GetAllAsync();
+            var users = await _unitOfWork.Users.GetAllAsync();
             return users.Where(u => u.IsActive).Select(MapToDto).ToList();
         }
 
         public async Task<UserDto> GetByIdAsync(Guid id)
         {
-            var user = await _userRepository.GetByIdAsync(id);
+            var user = await _unitOfWork.Users.GetByIdAsync(id);
             if (user == null || !user.IsActive)
                 throw new KeyNotFoundException("User not found");
 
@@ -59,80 +68,114 @@ namespace DnDAgency.Application.Services
 
         public async Task<UserDto> UpdateAsync(Guid id, UpdateUserDto dto, Guid currentUserId)
         {
-            var user = await _userRepository.GetByIdAsync(id);
-            if (user == null)
-                throw new KeyNotFoundException("User not found");
-
-            if (id != currentUserId)
-                throw new UnauthorizedAccessException("You can only update your own profile");
-
-            if (!string.IsNullOrEmpty(dto.Username))
-                user.UpdateUsername(dto.Username);
-
-            if (!string.IsNullOrEmpty(dto.Email))
+            using var transaction = await _unitOfWork.BeginTransactionAsync();
+            try
             {
-                var existingUser = await _userRepository.GetByEmailAsync(dto.Email);
-                if (existingUser != null && existingUser.Id != id)
-                    throw new ArgumentException("Email is already in use");
+                var user = await _unitOfWork.Users.GetByIdAsync(id);
+                if (user == null)
+                    throw new KeyNotFoundException("User not found");
 
-                user.UpdateEmail(dto.Email);
+                if (id != currentUserId)
+                    throw new UnauthorizedAccessException("You can only update your own profile");
+
+                if (!string.IsNullOrEmpty(dto.Username))
+                    user.UpdateUsername(dto.Username);
+
+                if (!string.IsNullOrEmpty(dto.Email))
+                {
+                    var existingUser = await _unitOfWork.Users.GetByEmailAsync(dto.Email);
+                    if (existingUser != null && existingUser.Id != id)
+                        throw new ArgumentException("Email is already in use");
+
+                    user.UpdateEmail(dto.Email);
+                }
+
+                _unitOfWork.Users.Update(user);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransactionAsync();
+                
+                return MapToDto(user);
             }
-
-            await _userRepository.UpdateAsync(user);
-            return MapToDto(user);
+            catch
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw;
+            }
         }
 
         public async Task<AuthResponseDto> AuthenticateAsync(string email, string password)
         {
-            var user = await _userRepository.GetByEmailAsync(email);
-            if (user == null || !user.IsActive || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
-                throw new UnauthorizedAccessException("Invalid credentials");
-
-            var accessToken = GenerateJwtToken(user);
-            var refreshToken = GenerateRefreshToken(user.Id);
-
-            await _refreshTokenRepository.AddAsync(refreshToken);
-
-            return new AuthResponseDto
+            using var transaction = await _unitOfWork.BeginTransactionAsync();
+            try
             {
-                Token = accessToken,
-                RefreshToken = refreshToken.Token,
-                User = MapToDto(user),
-                Expires = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["JwtSettings:ExpiryMinutes"]!))
-            };
+                var user = await _unitOfWork.Users.GetByEmailAsync(email);
+                if (user == null || !user.IsActive || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+                    throw new UnauthorizedAccessException("Invalid credentials");
+
+                var accessToken = GenerateJwtToken(user);
+                var refreshToken = GenerateRefreshToken(user.Id);
+
+                await _unitOfWork.RefreshTokens.AddAsync(refreshToken);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransactionAsync();
+
+                return new AuthResponseDto
+                {
+                    Token = accessToken,
+                    RefreshToken = refreshToken.Token,
+                    User = MapToDto(user),
+                    Expires = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["JwtSettings:ExpiryMinutes"]!))
+                };
+            }
+            catch
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw;
+            }
         }
 
         public async Task<AuthResponseDto> RefreshTokenAsync(string token)
         {
-            var refreshToken = await _refreshTokenRepository.GetByTokenAsync(token);
-            if (refreshToken == null || !refreshToken.IsActive)
-                throw new UnauthorizedAccessException("Invalid or inactive refresh token");
-
-            // деактивируем старый
-            refreshToken.Revoke();
-            await _refreshTokenRepository.UpdateAsync(refreshToken);
-
-            var user = await _userRepository.GetByIdAsync(refreshToken.UserId);
-            if (user == null || !user.IsActive)
-                throw new UnauthorizedAccessException("User not found");
-
-            var newAccessToken = GenerateJwtToken(user);
-            var newRefreshToken = GenerateRefreshToken(user.Id);
-
-            await _refreshTokenRepository.AddAsync(newRefreshToken);
-
-            return new AuthResponseDto
+            using var transaction = await _unitOfWork.BeginTransactionAsync();
+            try
             {
-                Token = newAccessToken,
-                RefreshToken = newRefreshToken.Token,
-                User = MapToDto(user),
-                Expires = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["JwtSettings:ExpiryMinutes"]!))
-            };
+                var refreshToken = await _unitOfWork.RefreshTokens.GetByTokenAsync(token);
+                if (refreshToken == null || !refreshToken.IsActive)
+                    throw new UnauthorizedAccessException("Invalid or inactive refresh token");
+
+                // деактивируем старый
+                refreshToken.Revoke();
+                _unitOfWork.RefreshTokens.Update(refreshToken);
+
+                var user = await _unitOfWork.Users.GetByIdAsync(refreshToken.UserId);
+                if (user == null || !user.IsActive)
+                    throw new UnauthorizedAccessException("User not found");
+
+                var newAccessToken = GenerateJwtToken(user);
+                var newRefreshToken = GenerateRefreshToken(user.Id);
+
+                await _unitOfWork.RefreshTokens.AddAsync(newRefreshToken);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransactionAsync();
+
+                return new AuthResponseDto
+                {
+                    Token = newAccessToken,
+                    RefreshToken = newRefreshToken.Token,
+                    User = MapToDto(user),
+                    Expires = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["JwtSettings:ExpiryMinutes"]!))
+                };
+            }
+            catch
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw;
+            }
         }
 
         public async Task ChangePasswordAsync(Guid userId, ChangePasswordDto dto)
         {
-            var user = await _userRepository.GetByIdAsync(userId);
+            var user = await _unitOfWork.Users.GetByIdAsync(userId);
             if (user == null)
                 throw new KeyNotFoundException("User not found");
 
@@ -142,12 +185,13 @@ namespace DnDAgency.Application.Services
             var newHashedPassword = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
             user.UpdatePassword(newHashedPassword);
 
-            await _userRepository.UpdateAsync(user);
+            _unitOfWork.Users.Update(user);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task DeactivateAsync(Guid id, Guid currentUserId)
         {
-            var user = await _userRepository.GetByIdAsync(id);
+            var user = await _unitOfWork.Users.GetByIdAsync(id);
             if (user == null)
                 throw new KeyNotFoundException("User not found");
 
@@ -155,7 +199,8 @@ namespace DnDAgency.Application.Services
                 throw new UnauthorizedAccessException("You can only deactivate your own account");
 
             user.Deactivate();
-            await _userRepository.UpdateAsync(user);
+            _unitOfWork.Users.Update(user);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         private string GenerateJwtToken(User user)
