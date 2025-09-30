@@ -5,6 +5,7 @@
         public Guid Id { get; set; }
         public Guid CampaignId { get; set; }
         public DateTime StartTime { get; set; }
+        public string CampaignTitle { get; set; }
 
         public int CurrentPlayers { get; set; }
         public int AvailableSlots { get; set; }

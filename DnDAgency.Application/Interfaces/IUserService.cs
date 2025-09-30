@@ -13,6 +13,8 @@ namespace DnDAgency.Application.Interfaces
         Task ChangePasswordAsync(Guid userId, ChangePasswordDto dto);
         Task DeactivateAsync(Guid id, Guid currentUserId);
         Task<AuthResponseDto> RefreshTokenAsync(string refreshToken);
+        Task<AuthResponseDto> AuthenticateWithGoogleAsync(string googleIdToken);
+        Task<AuthResponseDto> AuthenticateWithGoogleCodeAsync(string code, string redirectUri);
 
     }
 }

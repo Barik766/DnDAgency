@@ -1,4 +1,5 @@
 ﻿using DnDAgency.Domain.Enums;
+using System.Text.RegularExpressions;
 
 namespace DnDAgency.Domain.Entities
 {
@@ -19,9 +20,14 @@ namespace DnDAgency.Domain.Entities
         public List<Booking> Bookings { get; private set; } = new();
 
         public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+        public string? GoogleId { get; private set; }
+        public bool IsGoogleUser => !string.IsNullOrEmpty(GoogleId);
 
 
+        // Конструктор для EF Core
+        protected User() { }
 
+        // Конструктор для обычного пользователя с паролем
         public User(string username, string email, string passwordHash)
         {
             ValidateUsername(username);
@@ -31,7 +37,21 @@ namespace DnDAgency.Domain.Entities
             Username = username;
             Email = email;
             PasswordHash = passwordHash;
-            RefreshTokens = new List<RefreshToken>();
+        }
+
+        // Конструктор для Google-пользователя
+        public User(string username, string email, string googleId, bool isGoogleAuth)
+        {
+            if (!isGoogleAuth)
+                throw new ArgumentException("Use regular constructor for non-Google users");
+
+            ValidateUsername(username);
+            ValidateEmail(email);
+
+            Username = username;
+            Email = email;
+            GoogleId = googleId;
+            PasswordHash = string.Empty; // Пароль не нужен
         }
 
         public void UpdateUsername(string username)
@@ -111,7 +131,7 @@ namespace DnDAgency.Domain.Entities
                 throw new ArgumentException("Username cannot be empty");
             if (username.Length < 3 || username.Length > 50)
                 throw new ArgumentException("Username must be between 3 and 50 characters");
-            if (!System.Text.RegularExpressions.Regex.IsMatch(username, @"^[a-zA-Z0-9_-]+$"))
+            if (!Regex.IsMatch(username, @"^[\w-]+$"))
                 throw new ArgumentException("Username can only contain letters, numbers, underscores and hyphens");
         }
 

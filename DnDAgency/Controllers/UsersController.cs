@@ -165,6 +165,45 @@ namespace DnDAgency.Api.Controllers
             }
         }
 
+        [HttpPost("google-login")]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request)
+        {
+            try
+            {
+                var authResponse = await _userService.AuthenticateWithGoogleAsync(request.IdToken);
+                return Ok(authResponse);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Google authentication failed", error = ex.Message });
+            }
+        }
+
+        [HttpPost("google-callback")]
+        public async Task<IActionResult> GoogleCallback([FromBody] GoogleCodeRequest request)
+        {
+            try
+            {
+                var authResponse = await _userService.AuthenticateWithGoogleCodeAsync(
+                    request.Code,
+                    request.RedirectUri
+                );
+                return Ok(authResponse);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Google authentication failed", error = ex.Message });
+            }
+        }
+
         private Guid GetCurrentUserId()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -215,5 +254,20 @@ namespace DnDAgency.Api.Controllers
         [Required]
         [MinLength(6, ErrorMessage = "Password must be at least 6 characters long")]
         public string Password { get; set; } = null!;
+    }
+
+    public class GoogleLoginRequest
+    {
+        [Required]
+        public string IdToken { get; set; } = null!;
+    }
+
+    public class GoogleCodeRequest
+    {
+        [Required]
+        public string Code { get; set; } = null!;
+
+        [Required]
+        public string RedirectUri { get; set; } = null!;
     }
 }

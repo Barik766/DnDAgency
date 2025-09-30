@@ -363,9 +363,11 @@ namespace DnDAgency.Application.Services
                 SlotId = slot.Id,
                 CampaignId = campaign.Id,
                 CampaignTitle = campaign.Title,
+                CampaignImageUrl = campaign.ImageUrl, // Добавь если есть
                 Level = campaign.Level,
                 StartTime = slot.StartTime,
-                BookedPlayers = slot.Bookings.Count,
+                MaxPlayers = campaign.MaxPlayers, // Добавь эту строку
+                BookedPlayers = slot.CurrentPlayers,
                 AvailableSlots = campaign.MaxPlayers - slot.Bookings.Count,
                 IsFull = (campaign.MaxPlayers - slot.Bookings.Count) <= 0
             };

@@ -4,12 +4,15 @@ using DnDAgency.Application.DTOs.UsersDTO;
 using DnDAgency.Application.Interfaces;
 using DnDAgency.Domain.Entities;
 using DnDAgency.Infrastructure.Interfaces;
+using DnDAgency.Infrastructure.Services;
+using DnDAgency.Infrastructure.UnitOfWork;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace DnDAgency.Application.Services
 {
@@ -17,13 +20,16 @@ namespace DnDAgency.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _configuration;
+        private readonly IGoogleOAuthService _googleOAuthService;
 
         public UserService(
             IUnitOfWork unitOfWork,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IGoogleOAuthService googleOAuthService)
         {
             _unitOfWork = unitOfWork;
             _configuration = configuration;
+            _googleOAuthService = googleOAuthService;
         }
 
         public async Task<UserDto> CreateAsync(string username, string email, string password)
@@ -202,6 +208,107 @@ namespace DnDAgency.Application.Services
             _unitOfWork.Users.Update(user);
             await _unitOfWork.SaveChangesAsync();
         }
+
+
+
+        public async Task<AuthResponseDto> AuthenticateWithGoogleAsync(string googleIdToken)
+        {
+            using var transaction = await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                // Валидация токена Google
+                var googleUser = await _googleOAuthService.ValidateGoogleTokenAsync(googleIdToken);
+
+                // Поиск пользователя по email
+                var user = await _unitOfWork.Users.GetByEmailAsync(googleUser.Email);
+
+                if (user == null)
+                {
+                    // Берём часть email до '@' для username
+                    var emailPrefix = googleUser.Email.Split('@')[0];
+
+                    // Заменяем все недопустимые символы на '_' (оставляем только буквы, цифры, _ и -)
+                    var safeUsername = Regex.Replace(emailPrefix, @"[^\w-]", "_");
+
+                    // Создаем Google-пользователя
+                    user = new User(safeUsername, googleUser.Email, googleUser.GoogleId, isGoogleAuth: true);
+                    await _unitOfWork.Users.AddAsync(user);
+                }
+                else if (!user.IsActive)
+                {
+                    throw new UnauthorizedAccessException("User account is deactivated");
+                }
+
+                // Генерация токенов
+                var accessToken = GenerateJwtToken(user);
+                var refreshToken = GenerateRefreshToken(user.Id);
+
+                await _unitOfWork.RefreshTokens.AddAsync(refreshToken);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransactionAsync();
+
+                // Формирование ответа
+                return new AuthResponseDto
+                {
+                    Token = accessToken,
+                    RefreshToken = refreshToken.Token,
+                    User = MapToDto(user),
+                    Expires = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["JwtSettings:ExpiryMinutes"]!))
+                };
+            }
+            catch
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw;
+            }
+        }
+
+        public async Task<AuthResponseDto> AuthenticateWithGoogleCodeAsync(string code, string redirectUri)
+        {
+            using var transaction = await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                var googleUser = await _googleOAuthService.ExchangeCodeForUserInfoAsync(code, redirectUri);
+
+                var user = await _unitOfWork.Users.GetByEmailAsync(googleUser.Email);
+
+                if (user == null)
+                {
+                    var emailPrefix = googleUser.Email.Split('@')[0];
+                    var safeUsername = Regex.Replace(emailPrefix, @"[^\w-]", "_");
+
+                    user = new User(safeUsername, googleUser.Email, googleUser.GoogleId, isGoogleAuth: true);
+                    await _unitOfWork.Users.AddAsync(user);
+                }
+                else if (!user.IsActive)
+                {
+                    throw new UnauthorizedAccessException("User account is deactivated");
+                }
+
+                var accessToken = GenerateJwtToken(user);
+                var refreshToken = GenerateRefreshToken(user.Id);
+
+                await _unitOfWork.RefreshTokens.AddAsync(refreshToken);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransactionAsync();
+
+                return new AuthResponseDto
+                {
+                    Token = accessToken,
+                    RefreshToken = refreshToken.Token,
+                    User = MapToDto(user),
+                    Expires = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["JwtSettings:ExpiryMinutes"]!))
+                };
+            }
+            catch
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw;
+            }
+        }
+
+
+
 
         private string GenerateJwtToken(User user)
         {

@@ -57,6 +57,10 @@ builder.Services.AddSingleton<IFileStorageService>(
         builder.Environment.ContentRootPath
     )
 );
+var googleClientId = builder.Configuration["GoogleOAuth:ClientId"];
+var googleClientSecret = builder.Configuration["GoogleOAuth:ClientSecret"];
+builder.Services.AddScoped<IGoogleOAuthService>(provider =>
+    new GoogleOAuthService(googleClientId!, googleClientSecret!));
 
 
 // JWT Configuration

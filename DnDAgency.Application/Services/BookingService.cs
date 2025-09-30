@@ -151,6 +151,7 @@ namespace DnDAgency.Application.Services
                     throw new ArgumentException("Cannot cancel booking less than 2 hours before start");
 
                 _unitOfWork.Bookings.Delete(booking);
+                _unitOfWork.Slots.Delete(booking.Slot);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitTransactionAsync();
             }
@@ -221,13 +222,16 @@ namespace DnDAgency.Application.Services
 
         private static SlotDto MapSlotToDto(Slot slot)
         {
-            var availableSlots = slot.Campaign.MaxPlayers - slot.Bookings.Count;
+            var currentPlayers = slot.Bookings.Sum(b => b.PlayersCount); 
+            var availableSlots = slot.Campaign.MaxPlayers - currentPlayers;
 
             return new SlotDto
             {
                 Id = slot.Id,
                 CampaignId = slot.CampaignId,
                 StartTime = slot.StartTime,
+                CampaignTitle = slot.Campaign.Title,
+                CurrentPlayers = currentPlayers,
                 AvailableSlots = availableSlots,
                 IsFull = availableSlots <= 0,
                 IsInPast = slot.StartTime < DateTime.UtcNow

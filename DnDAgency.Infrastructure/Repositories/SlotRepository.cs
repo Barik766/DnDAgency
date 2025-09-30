@@ -67,6 +67,7 @@ public partial class SlotRepository : GenericRepository<Slot>, ISlotRepository
             .Include(s => s.Bookings)
             .Where(s => s.StartTime > now)
             .OrderBy(s => s.StartTime)
+            .AsSplitQuery()
             .AsNoTracking()
             .ToListAsync();
     }
