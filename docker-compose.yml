@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_DB: DnDAgencyDb
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 529489
+      POSTGRES_PASSWORD: 52948900
     ports:
       - "5432:5432"
     volumes:
