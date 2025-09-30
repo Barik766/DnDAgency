@@ -1,0 +1,52 @@
+<div class="game-scroll">
+  <!-- Верхние контролы -->
+  <div class="card-controls" *ngIf="canEditOrAdmin">
+    <!-- Статус (актив/деактив) -->
+    <button class="status-btn" (click)="onToggleStatus()" [title]="game.isActive ? 'Deactivate' : 'Activate'">
+      <span class="material-icons">swap_vert</span>
+    </button>
+
+    <!-- Edit и Delete рядом -->
+    <div class="right-controls">
+      <button class="edit-btn" (click)="onEdit()" title="Edit">
+        <span class="material-icons">edit</span>
+      </button>
+      <button class="delete-btn" (click)="onDelete()" title="Delete">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Печать -->
+  <div class="scroll-seal">
+    <img src="/img/seal.png" alt="Seal" class="seal-image">
+  </div>
+
+  <!-- Контент карточки -->
+  <div class="scroll-content">
+    <h3 class="game-title">{{ game.title }}</h3>
+    <div class="game-image">
+      <img [src]="game.image" [alt]="game.title">
+    </div>
+
+    <div class="game-tags" *ngIf="game.tags && game.tags.length > 0">
+      <span class="tag" *ngFor="let tag of game.tags">{{ tag }}</span>
+    </div>
+
+    <div class="game-details">
+      <div class="detail-row">
+        <span class="detail">Lvl: {{ game.level }}</span>
+        <span class="detail">${{ game.price }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail">
+          {{ game.hasAvailableSlots ? 'Slots' : 'Full' }}
+        </span>
+      </div>
+    </div>
+
+    <button class="btn--secondary" (click)="onDetails()">Подробнее</button>
+  </div>
+
+  <div class="inactive-overlay" *ngIf="!game.isActive"></div>
+</div>

@@ -1,0 +1,27 @@
+@use 'bootstrap/scss/bootstrap';
+@use 'stylesFolder/variables';
+@use 'stylesFolder/mixins';
+@use 'stylesFolder/typography';
+@use 'stylesFolder/components';
+
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-wood-dark);
+  color: var(--color-text-on-dark);
+  line-height: 1.6;
+}
+ 
+
+
+html, body {
+  height: 100%;
+}
+
+

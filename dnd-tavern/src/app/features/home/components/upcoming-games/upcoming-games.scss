@@ -1,0 +1,70 @@
+.upcoming-games {
+  padding: 4rem 0;
+  background: var(--color-wood-dark);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.board-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.board-title {
+  font-family: "Times New Roman", serif;
+  font-size: 3rem;
+  font-weight: bold;
+  color: #f4e4bc;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.games-board {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .board-title {
+    font-size: 2.2rem;
+
+    &::before,
+    &::after {
+      width: 80px;
+    }
+
+    &::before {
+      left: -100px;
+    }
+
+    &::after {
+      right: -100px;
+    }
+  }
+
+  .games-board {
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .board-title {
+    font-size: 1.8rem;
+
+    &::before,
+    &::after {
+      display: none;
+    }
+  }
+
+  .container {
+    padding: 0 1rem;
+  }
+}

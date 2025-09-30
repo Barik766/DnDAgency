@@ -1,0 +1,30 @@
+// Цветовая палитра таверны
+:root {
+  // Основные древесные цвета
+  --color-wood-darker: #1a0f0a;
+  --color-wood-dark: #2d1b13;
+  --color-wood-medium: #4a2c1d;
+  --color-wood-light: #6b3e2a;
+  
+  // Пергамент
+  --color-parchment: #b48c5a;
+  --color-parchment-dark: #e6d4b8;
+  --color-parchment-component: #e3b373;
+  
+  // Акцентные цвета
+  --color-accent-primary: #8b1538;  // глубокий красный/бордовый
+  --color-accent-dark: #6b0f2a;
+  --color-brass: #d4af37;           // латунь/золото
+  --color-brass-light: #e6c85a;
+  --color-brass-rgb: 212, 175, 55;
+  
+  // Текст
+  --color-text-primary: #2d1b13;
+  --color-text-secondary: #5a3825;
+  --color-text-on-dark: #f4e6d4;
+  --color-text-light: #8a6b4a;
+  
+  // Шрифты
+  --font-fantasy: 'Cinzel', 'Times New Roman', serif;
+  --font-body: 'Open Sans', Arial, sans-serif;
+}

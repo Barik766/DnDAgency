@@ -1,0 +1,98 @@
+// Общие стили секций
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.section-title {
+  font-family: var(--font-fantasy);
+  font-size: 2.5rem;
+  color: var(--color-accent-primary);
+  margin-bottom: 1rem;
+  
+  @media (max-width: 768px) {
+    font-size: 2rem;
+  }
+}
+
+.section-subtitle {
+  font-size: 1.1rem;
+  color: var(--color-text-light);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+// Кнопки
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  
+  &--primary {
+    background: var(--color-accent-primary);
+    color: white;
+    
+    &:hover {
+      background: var(--color-accent-dark);
+      transform: translateY(-1px);
+    }
+  }
+  
+  &--secondary {
+    background: var(--color-wood-medium);
+    color: var(--color-text-on-dark);
+    border: 1px solid var(--color-brass);
+    
+    &:hover {
+      background: var(--color-wood-light);
+    }
+  }
+  
+  &--accent {
+    background: var(--color-brass);
+    color: var(--color-wood-dark);
+    
+    &:hover {
+      background: var(--color-brass-light);
+    }
+  }
+  
+  &--large {
+    padding: 0.75rem 2rem;
+    font-size: 1.1rem;
+  }
+  
+  &--full {
+    width: 100%;
+  }
+}
+
+// Поля ввода
+.form-field {
+  padding: 0.5rem;
+  border: 1px solid var(--color-wood-medium);
+  border-radius: 0px;
+  background: var(--color-parchment);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  
+  &:focus {
+    outline: none;
+    border-color: var(--color-brass);
+    box-shadow: 0 0 0 2px rgba(var(--color-brass-rgb), 0.2);
+  }
+}

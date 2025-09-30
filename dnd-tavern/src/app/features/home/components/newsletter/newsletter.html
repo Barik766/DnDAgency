@@ -1,0 +1,52 @@
+<section class="newsletter-section">
+  <div class="container">
+    <div class="newsletter-content">
+      <!-- Свиток слева -->
+      <div class="scroll-image-container">
+        <img 
+          src="img/community.png" 
+          alt="Ancient Scroll" 
+          class="scroll-image"
+        />
+      </div>
+      
+      <!-- Контент справа -->
+      <div class="newsletter-text">
+        <h2 class="newsletter-title">Join the Community</h2>
+        <p class="newsletter-description">
+          Subscribe to the tavern newsletter for updates<br>
+          on new campaigns, Game Masters, and events.
+        </p>
+        
+        <div class="subscription-form" *ngIf="!isSubscribed">
+          <div class="form-group">
+            <input 
+              type="email" 
+              [(ngModel)]="email"
+              placeholder="Enter mail address"
+              class="email-input"
+              [disabled]="isSubmitting"
+              (keyup.enter)="onSubscribe()"
+            />
+            <button 
+              class="subscribe-btn"
+              (click)="onSubscribe()"
+              [disabled]="isSubmitting || !email"
+            >
+              <span *ngIf="!isSubmitting">Subscribe</span>
+              <span *ngIf="isSubmitting" class="loading-spinner">⚡</span>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Сообщение об успешной подписке -->
+        <div class="success-message" *ngIf="isSubscribed">
+          <div class="success-icon">📜</div>
+          <h3>Welcome to the Tavern!</h3>
+          <p>You've successfully joined our community of adventurers</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="newsletter-torn-edge"></div>
+</section>

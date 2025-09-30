@@ -1,0 +1,29 @@
+<header class="header">
+  <div class="header__container">
+    <div class="header__logo">
+      <a routerLink="/">🍺 Tavern</a>
+    </div>
+
+    <nav class="header__nav">
+      <a routerLink="/campaigns">Campaigns</a>
+      <a routerLink="/my-bookings">My Bookings</a>
+      <a routerLink="/masters">Masters</a>
+      <a routerLink="/about">About Us</a>
+    </nav>
+
+    <div class="header__actions">
+      @if (!isAuthenticated) {
+        <button class="btn btn--secondary" (click)="onLogin()">Login</button>
+      } @else {
+        @if (isMaster) {
+          <button class="header__profile-btn" (click)="goToProfile()">
+            <span class="material-icons">account_circle</span>
+          </button>
+        }
+        <button class="btn btn--secondary" (click)="onLogout()">LogOut</button>
+      }
+    </div>
+
+
+  </div>
+</header>

@@ -1,0 +1,254 @@
+.our-masters {
+  padding: 4rem 0;
+  
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  
+  .section-title {
+    font-family: 'Creepster', 'Nosifer', serif;
+    font-size: 4rem;
+    color: #F4E4BC;
+    margin-bottom: 1rem;
+    letter-spacing: 4px;
+  }
+  
+  .section-subtitle {
+    font-size: 1.2rem;
+    color: #F4E4BC;
+    font-weight: 500;
+  }
+}
+
+.masters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.wanted-poster {
+  position: relative;
+  background: #F4E4BC; // Цвет пергамента как на изображении
+  border: 4px solid #8B4513;
+  padding: 1.5rem;
+  transform: rotate(-2deg);
+  transition: all 0.3s ease;
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.3),
+    inset 0 0 20px rgba(139, 69, 19, 0.1);
+  
+  // Эффект старой бумаги
+  background-image: 
+    radial-gradient(circle at 20% 80%, rgba(139, 69, 19, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(139, 69, 19, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(139, 69, 19, 0.03) 0%, transparent 50%);
+  
+  &:nth-child(even) {
+    transform: rotate(2deg);
+  }
+  
+  &:nth-child(3n) {
+    transform: rotate(-1deg);
+  }
+  
+  &:hover {
+    transform: rotate(0deg) scale(1.05);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    z-index: 10;
+  }
+  
+  // Гвозди по углам
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: #654321;
+    border-radius: 50%;
+    box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.3);
+  }
+  
+  &::before {
+    top: 10px;
+    left: 10px;
+  }
+  
+  &::after {
+    top: 10px;
+    right: 10px;
+  }
+}
+
+// Дополнительные гвозди
+.wanted-poster .nail-bottom-left,
+.wanted-poster .nail-bottom-right {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: #654321;
+  border-radius: 50%;
+  box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.nail-bottom-left {
+  bottom: 10px;
+  left: 10px;
+}
+
+.nail-bottom-right {
+  bottom: 10px;
+  right: 10px;
+}
+
+.poster-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  
+  .wanted-title {
+    font-family: 'Creepster', 'Nosifer', serif;
+    font-size: 2.8rem;
+    color: #8B4513;
+    font-weight: bold;
+    letter-spacing: 3px;
+    margin: 0;
+    transform: rotate(-1deg);
+  }
+}
+
+.poster-photo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  
+  .photo-container {
+    position: relative;
+    width: 240px;
+    height: 280px;
+    border: 4px solid #8B4513;
+    background: #D2B48C;
+    overflow: hidden;
+    transform: rotate(1deg);
+    box-shadow: 
+      inset 0 0 10px rgba(0, 0, 0, 0.2),
+      0 2px 4px rgba(0, 0, 0, 0.3);
+    
+    .gm-photo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      // Фильтры для создания эффекта старого рисунка
+      filter: 
+        sepia(40%) 
+        contrast(1.2) 
+        brightness(0.9) 
+        hue-rotate(25deg) 
+        saturate(0.8);
+      // Дополнительный слой через mix-blend-mode
+      mix-blend-mode: multiply;
+    }
+    
+    // Overlay для создания эффекта рисунка
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        linear-gradient(45deg, 
+          rgba(139, 69, 19, 0.1) 0%, 
+          rgba(160, 82, 45, 0.05) 50%, 
+          rgba(139, 69, 19, 0.1) 100%);
+      mix-blend-mode: overlay;
+      pointer-events: none;
+    }
+    
+    .photo-placeholder {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 4rem;
+      opacity: 0.6;
+      color: #8B4513;
+    }
+  }
+}
+
+.poster-info {
+  text-align: center;
+  
+  .gm-name {
+    font-family: 'Creepster', 'Nosifer', serif;
+    color: #8B4513;
+    font-size: 1.8rem;
+    margin: 0;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    line-height: 1.2;
+  }
+  
+}
+
+.masters-cta {
+  text-align: center;
+  margin-top: 4rem;
+  
+  .btn--view-all {
+    background: #8B4513;
+    color: #F4E4BC;
+    border: 3px solid #654321;
+    padding: 1rem 2rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-radius: 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Creepster', 'Nosifer', serif;
+    text-shadow: 1px 1px 0px #654321;
+    
+    &:hover {
+      background: #654321;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+  }
+}
+
+// Адаптивность
+@media (max-width: 768px) {
+  .section-header .section-title {
+    font-size: 3rem;
+  }
+  
+  .wanted-poster {
+    transform: rotate(0deg);
+    margin-bottom: 1rem;
+    
+    &:nth-child(even),
+    &:nth-child(3n) {
+      transform: rotate(0deg);
+    }
+    
+    &:hover {
+      transform: scale(1.02);
+    }
+  }
+  
+  .poster-header .wanted-title {
+    font-size: 2.2rem;
+  }
+  
+  .poster-info .gm-name {
+    font-size: 1.5rem;
+  }
+}

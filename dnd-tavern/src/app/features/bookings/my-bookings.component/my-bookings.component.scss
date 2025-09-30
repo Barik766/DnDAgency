@@ -1,0 +1,232 @@
+.my-bookings-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--color-wood-dark) 0%, var(--color-wood-medium) 100%);
+  padding: 2rem 0;
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+
+  .section-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    
+    .section-title {
+      font-family: var(--font-fantasy);
+      font-size: 3rem;
+      color: var(--color-brass);
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      margin-bottom: 1rem;
+      letter-spacing: 2px;
+    }
+    
+    .section-subtitle {
+      font-size: 1.2rem;
+      color: var(--color-text-on-dark);
+      opacity: 0.8;
+      font-style: italic;
+    }
+  }
+
+  .loading {
+    text-align: center;
+    padding: 4rem 0;
+    
+    .loading-text {
+      font-size: 1.3rem;
+      color: var(--color-text-on-dark);
+      font-family: var(--font-fantasy);
+    }
+  }
+
+  .error-message {
+    background: rgba(var(--color-accent-primary), 0.1);
+    border: 1px solid var(--color-accent-primary);
+    color: var(--color-text-on-dark);
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem 0;
+    
+    .empty-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+    }
+    
+    h3 {
+      font-family: var(--font-fantasy);
+      color: var(--color-brass);
+      font-size: 1.8rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    p {
+      color: var(--color-text-on-dark);
+      opacity: 0.7;
+      font-size: 1.1rem;
+    }
+  }
+
+  .bookings-table-container {
+    background: var(--color-parchment-dark);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    border: 3px solid var(--color-wood-light);
+  }
+
+  .tavern-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-body);
+    
+    thead {
+      background: var(--color-wood-medium);
+      
+      th {
+        padding: 1rem;
+        text-align: left;
+        font-family: var(--font-fantasy);
+        color: var(--color-text-on-dark);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-bottom: 2px solid var(--color-brass);
+        position: relative;
+        
+        &:first-child {
+          border-radius: 8px 0 0 0;
+        }
+        
+        &:last-child {
+          border-radius: 0 8px 0 0;
+        }
+      }
+    }
+    
+    tbody {
+      tr {
+        border-bottom: 1px solid rgba(var(--color-brass-rgb), 0.2);
+        transition: all 0.3s ease;
+        
+        &:hover {
+          background: rgba(var(--color-brass-rgb), 0.1);
+        }
+        
+        &.upcoming-booking {
+          background: rgba(75, 181, 67, 0.05);
+        }
+        
+        &.past-booking {
+          background: rgba(108, 117, 125, 0.05);
+          opacity: 0.7;
+        }
+      }
+      
+      td {
+        padding: 1rem;
+        color: var(--color-text-primary);
+        vertical-align: middle;
+      }
+    }
+
+    .date-cell {
+      .date-time {
+        font-weight: 600;
+        color: var(--color-text-primary);
+      }
+    }
+
+    .status-cell {
+      .status-badge {
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        
+        &.status-upcoming {
+          background: rgba(75, 181, 67, 0.2);
+          color: #2d5016;
+          border: 1px solid #4bb543;
+        }
+        
+        &.status-past {
+          background: rgba(108, 117, 125, 0.2);
+          color: #495057;
+          border: 1px solid #6c757d;
+        }
+      }
+    }
+
+    .players-cell {
+      font-weight: 500;
+      color: var(--color-text-secondary);
+    }
+
+    .booked-cell {
+      color: var(--color-text-light);
+      font-size: 0.9rem;
+    }
+
+    .actions-cell {
+      text-align: center;
+      
+      .cancel-btn {
+        background: var(--color-accent-primary);
+        border: 1px solid var(--color-accent-dark);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        
+        &:hover {
+          background: var(--color-accent-dark);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        &:active {
+          transform: translateY(0);
+        }
+      }
+      
+      .text-muted {
+        color: var(--color-text-light);
+        font-style: italic;
+      }
+    }
+  }
+
+  // Адаптивность
+  @media (max-width: 768px) {
+    .section-header .section-title {
+      font-size: 2rem;
+    }
+    
+    .bookings-table-container {
+      padding: 1rem;
+      overflow-x: auto;
+    }
+    
+    .tavern-table {
+      min-width: 600px;
+      
+      thead th,
+      tbody td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.9rem;
+      }
+    }
+  }
+}

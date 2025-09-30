@@ -1,0 +1,176 @@
+.game-scroll {
+  position: relative;
+  height: 400px;
+  width: 270px;
+  background: var(--color-parchment-component);
+  border: 4px solid #8B4513;
+  border-radius: 0;
+  box-shadow:
+    3px 3px 8px rgba(0, 0, 0, 0.4),
+    1px 1px 3px rgba(0, 0, 0, 0.2);
+  overflow: visible; // важно для overlay
+}
+
+/* Контролы */
+.card-controls {
+  position: absolute;
+  top: -16px; /* над рамкой */
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 8px;
+  z-index: 20; /* поверх рамки */
+}
+
+/* Кнопки */
+.status-btn, .edit-btn, .delete-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #8B4513;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+  transition: transform 0.2s;
+  color: #fff;
+}
+
+.status-btn {
+  background-color: #ffc107;
+}
+
+.right-controls {
+  display: flex;
+  gap: 4px;
+}
+
+.edit-btn {
+  background-color: #17a2b8;
+}
+
+.delete-btn {
+  background-color: #dc3545;
+}
+
+.status-btn:hover, .edit-btn:hover, .delete-btn:hover {
+  transform: translateY(-2px);
+}
+
+/* Иконки */
+.material-icons {
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* Печать */
+.scroll-seal {
+  position: absolute;
+  top: -33px;
+  right: 106px;
+  z-index: 15; /* поверх рамки */
+}
+
+.seal-image {
+  width: 50px;
+  height: 50px;
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.4));
+}
+
+/* Контент карточки */
+.scroll-content {
+  padding: 1.5rem 1.2rem 1.2rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* Название */
+.game-title {
+  font-family: 'Times New Roman', serif;
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #4a3c28;
+  text-align: center;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Изображение */
+.game-image {
+  width: 100%;
+  height: 160px;
+  margin: 0 auto 1rem;
+  border: 2px solid #654321;
+  border-radius: 0;
+  overflow: hidden;
+  box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.game-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Теги */
+.game-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.2rem;
+  margin: 0.3rem 0;
+  max-height: 40px;
+  overflow: hidden;
+}
+
+.tag {
+  background-color: #8B4513;
+  color: #fff;
+  font-family: 'Times New Roman', serif;
+  font-size: 0.7rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 8px;
+  text-transform: uppercase;
+}
+
+/* Детали */
+.game-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  text-align: center;
+  font-family: 'Times New Roman', serif;
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #4a3c28;
+  margin: 0.3rem 0;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 0.3rem;
+}
+
+.detail {
+  white-space: nowrap;
+}
+
+.inactive-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(128,128,128,0.5); // полупрозрачная серая пелена
+  z-index: 14;
+  pointer-events: none; // чтобы кнопки оставались кликабельными для мастера/админа
+}
+
+/* Адаптивность */
+@media (max-width: 480px) {
+  .game-scroll {
+    width: 100%;
+    max-width: 300px;
+  }
+}

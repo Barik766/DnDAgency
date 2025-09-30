@@ -1,0 +1,40 @@
+<div class="masters-page">
+  <div class="container">
+    <div class="section-header">
+      <h1 class="section-title">ВСЕ МАСТЕРА</h1>
+      <p class="section-subtitle">Выбери своего проводника в мир приключений</p>
+    </div>
+   
+    <div *ngIf="isLoading" class="loading">Загрузка мастеров...</div>
+    <div *ngIf="error" class="error">{{ error }}</div>
+   
+    <div class="masters-grid" *ngIf="!isLoading && !error">
+      <div class="wanted-poster" *ngFor="let master of masters" (click)="onMasterClick(master)">
+        <div class="nail-bottom-left"></div>
+        <div class="nail-bottom-right"></div>
+       
+        <div class="poster-header">
+          <h3 class="wanted-title">WANTED</h3>
+        </div>
+       
+        <div class="poster-photo">
+          <div class="photo-container">
+            <img
+              *ngIf="master.photoUrl"
+              [src]="'http://localhost:5195/' + master.photoUrl"
+              [alt]="master.name"
+              class="gm-photo"
+              (click)="$event.stopPropagation()">
+            <div
+              *ngIf="!master.photoUrl"
+              class="photo-placeholder">🎭</div>
+          </div>
+        </div>
+       
+        <div class="poster-info">
+          <h4 class="gm-name">{{ master.name }}</h4>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

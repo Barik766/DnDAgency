@@ -1,0 +1,177 @@
+<div class="campaign-details-page">
+  <div class="container">
+    
+    <!-- Состояния загрузки и ошибок -->
+    @if (isLoading) {
+      <div class="loading-state">
+        <div class="loading-icon">⚔️</div>
+        <p>Готовим приключение...</p>
+      </div>
+    }
+
+    @if (error) {
+      <div class="error-state">
+        <div class="error-icon">🛡️</div>
+        <h3>Упс! Что-то пошло не так</h3>
+        <p>{{ error }}</p>
+      </div>
+    }
+
+    <!-- Основной контент -->
+    @if (!isLoading && campaign) {
+      <div class="campaign-content">
+        
+        <!-- Заголовок кампании -->
+        <div class="campaign-header">
+          <div class="campaign-image-container">
+            <img [src]="campaign.imageUrl" [alt]="campaign.title" class="campaign-image">
+            <div class="image-overlay"></div>
+          </div>
+          
+          <div class="campaign-info">
+            <h1 class="campaign-title">{{ campaign.title }}</h1>
+            <p class="campaign-description">{{ campaign.description }}</p>
+            
+            <div class="campaign-stats">
+              <div class="stat-item">
+                <span class="stat-label">Уровень</span>
+                <span class="stat-value">{{ campaign.level }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Цена</span>
+                <span class="stat-value">${{ campaign.price }}</span>
+              </div>
+              @if (campaign.durationHours) {
+                <div class="stat-item">
+                  <span class="stat-label">Длительность</span>
+                  <span class="stat-value">{{ campaign.durationHours }}ч</span>
+                </div>
+              }
+              <div class="stat-item">
+                <span class="stat-label">Мастер</span>
+                <span class="stat-value">{{ campaign.masterName }}</span>
+              </div>
+            </div>
+            
+            @if (campaign.tags.length) {
+              <div class="campaign-tags">
+                <span class="tag" *ngFor="let tag of campaign.tags">{{ tag }}</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Секция бронирования -->
+        <div class="booking-section">
+          <h2 class="section-title">ЗАБРОНИРОВАТЬ ПРИКЛЮЧЕНИЕ</h2>
+          
+          <!-- Выбор типа игры -->
+          <div class="booking-step">
+            <h3 class="step-title">Тип приключения</h3>
+            <div class="game-type-options">
+              <label class="radio-option">
+                <input type="radio" name="gameType" value="online" [(ngModel)]="selectedGameType" (change)="onGameTypeChange()">
+                <span class="radio-custom"></span>
+                <span class="option-text">🌐 Онлайн</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="gameType" value="offline" [(ngModel)]="selectedGameType" (change)="onGameTypeChange()">
+                <span class="radio-custom"></span>
+                <span class="option-text">🏠 Оффлайн</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Выбор даты -->
+          @if (selectedGameType) {
+            <div class="booking-step">
+              <h3 class="step-title">Выберите дату</h3>
+              <div class="input-group">
+                <input
+                  type="date"
+                  class="tavern-input"
+                  [min]="getTomorrowDate()"
+                  [value]="selectedDate"
+                  (change)="onDateChange($event)"
+                  [formControl]="bookingForm.controls['date']"
+                />
+              </div>
+            </div>
+          }
+
+          <!-- Выбор времени -->
+          @if (selectedDate) {
+            <div class="booking-step">
+              <h3 class="step-title">Выберите время</h3>
+              
+              @if (isLoadingTimeSlots) {
+                <div class="loading-slots">
+                  <span class="spinner">⏳</span>
+                  Ищем свободные слоты...
+                </div>
+              }
+
+              @if (!isLoadingTimeSlots && availableTimeSlots.length > 0) {
+                <div class="time-slots">
+                  <select
+                    class="tavern-select"
+                    [formControl]="bookingForm.controls['dateTime']"
+                    (change)="onTimeSlotChange($event)"
+                  >
+                    <option value="">🕐 Выберите время</option>
+                    <option
+                      *ngFor="let timeSlot of availableTimeSlots"
+                      [value]="timeSlot.dateTime"
+                      [disabled]="!timeSlot.isAvailable"
+                    >
+                      {{ timeSlot.dateTime | date:'HH:mm' }} 
+                      ({{ timeSlot.maxPlayers - timeSlot.currentPlayers }} мест)
+                    </option>
+                  </select>
+                </div>
+              }
+
+              @if (!isLoadingTimeSlots && availableTimeSlots.length === 0) {
+                <div class="no-slots">
+                  <div class="no-slots-icon">📅</div>
+                  <p>На выбранную дату нет свободных слотов</p>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Выбор количества игроков -->
+          @if (selectedDateTime) {
+            <div class="booking-step">
+              <h3 class="step-title">Количество участников</h3>
+              <div class="players-selection">
+                <input
+                  type="number"
+                  class="tavern-input players-input"
+                  min="1"
+                  [max]="getMaxPlayersForTimeSlot()"
+                  [(ngModel)]="reservedPlayers"
+                  [formControl]="bookingForm.controls['players']"
+                  placeholder="1"
+                />
+                <span class="players-text">из {{ getMaxPlayersForTimeSlot() }} возможных</span>
+              </div>
+              
+              <!-- Кнопка бронирования -->
+              <div class="booking-action">
+                <button 
+                  class="btn btn--primary btn--large"
+                  (click)="onReserve()" 
+                  [disabled]="!selectedDateTime"
+                >
+                  ⚔️ ЗАБРОНИРОВАТЬ ПРИКЛЮЧЕНИЕ
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+        
+      </div>
+    }
+  </div>
+</div>

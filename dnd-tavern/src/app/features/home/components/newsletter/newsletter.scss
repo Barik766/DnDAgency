@@ -1,0 +1,212 @@
+/* newsletter.scss - готовый файл (без внешних переменных) */
+
+/* Основной блок секции */
+.newsletter-section {
+  padding: 0rem 0;
+  background: url('/img/newsletter-bg.png') center/cover no-repeat;
+  position: relative;
+}
+
+/* Контейнер для центровки */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Контент: картинка слева, текст справа */
+/* Изменяй gap, чтобы регулировать расстояние между свитком и текстом */
+.newsletter-content {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 500px;
+  gap: 3rem; /* <- поменяй это значение для увеличения/уменьшения расстояния */
+}
+
+/* Блок с изображением свитка */
+.scroll-image-container {
+  flex: 0 0 260px; /* ширину можно менять при необходимости */
+}
+
+.scroll-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: auto;
+  /* нет никаких анимаций */
+}
+
+/* Текстовая часть */
+.newsletter-text {
+  max-width: 560px;
+  text-align: left;
+  color: #2c1810; /* тёмно-коричневый текст */
+}
+
+/* Заголовок */
+.newsletter-title {
+  /* используем системный/шрифтовой запас; если нужен кастомный — подключи отдельно */
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 2.8rem; /* можно подвинуть */
+  line-height: 1.05;
+  color: #3a2417; /* тёмный коричневый */
+  margin: 0 0 0.6rem 0;
+  font-weight: 700;
+}
+
+/* Описание */
+.newsletter-description {
+  font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  margin: 0 0 1.25rem 0;
+  color: #4f3529; /* коричневый второстепенный */
+}
+
+/* Форма подписки */
+.subscription-form {
+  .form-group {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    max-width: 480px;
+    margin: 0;
+    border-radius: 9px; /* скруглённый общий контейнер */
+    overflow: hidden;
+    border: 2px solid rgb(106, 58, 36);
+    background: rgba(255,255,255,0); /* прозрачный фон внутри */
+  }
+}
+
+/* Инпут почты */
+.email-input {
+  flex: 1;
+  padding: 1rem 1.25rem;
+  border: none; /* убираем отдельную рамку у инпута */
+  background: transparent; /* прозрачный фон */
+  color: #2c1810; /* текст */
+  font-size: 1rem;
+  outline: none;
+  caret-color: #3a2417;
+
+  &::placeholder {
+    color: rgba(44,24,16,0.55);
+    font-style: normal;
+  }
+
+  &:focus {
+    outline: none; /* без внешних эффектов */
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+}
+
+/* Кнопка Subscribe — закруглённая, коричневый фон, без рамки и без эффектов */
+.subscribe-btn {
+  padding: 17px 26px;
+  background: #6a3a24; /* коричневый фон кнопки (приближённый) */
+  color: #f7eedc;       /* светлый текст */
+  border: none;         /* без рамки */
+  cursor: pointer;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 7px; /* полностью закруглённая */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;     /* без тени */
+  transition: none;     /* никаких hover-эффектов/анимаций */
+}
+
+/* Отключаем любые hover/active визуалки, чтобы кнопка была статичной как на макете */
+.subscribe-btn:hover,
+.subscribe-btn:active,
+.subscribe-btn:focus {
+  background: #6a3a24; /* остаётся тот же цвет */
+  transform: none;
+  outline: none;
+  box-shadow: none;
+}
+
+.newsletter-torn-edge {
+  position: absolute;
+  bottom: 460px;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 40px;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 40" preserveAspectRatio="none"><path d="M0,0 L0,20 L25,35 L45,15 L70,30 L85,10 L110,25 L135,35 L155,8 L180,28 L200,12 L225,32 L250,18 L275,25 L300,5 L320,30 L345,15 L370,28 L390,20 L415,35 L440,10 L465,25 L485,32 L510,15 L535,28 L555,12 L580,30 L605,18 L625,25 L650,8 L675,32 L700,15 L720,28 L745,20 L770,35 L795,10 L815,25 L840,32 L865,15 L885,28 L910,12 L935,30 L960,18 L980,25 L1005,8 L1030,32 L1055,15 L1075,28 L1100,20 L1125,35 L1150,10 L1175,25 L1200,30 L1200,0 Z" fill="%232d1b13"/></svg>') repeat-x;
+  background-size: cover;
+  z-index: 1;
+}
+
+/* Сообщение об успехе (статичное) */
+.success-message {
+  text-align: left;
+  color: #2c1810;
+
+  .success-icon {
+    font-size: 1.6rem;
+    margin-bottom: 0.35rem;
+  }
+
+  h3 {
+    font-family: Georgia, 'Times New Roman', serif;
+    color: #2c1810;
+    font-size: 1.4rem;
+    margin: 0 0 0.25rem 0;
+  }
+
+  p {
+    color: #4a3429;
+    margin: 0;
+    font-size: 1rem;
+  }
+}
+
+/* --- Адаптив --- */
+@media (max-width: 768px) {
+  .newsletter-content {
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: 3rem 0;
+  }
+
+  .scroll-image-container {
+    width: 180px;
+    flex: 0 0 180px;
+  }
+
+  .newsletter-title {
+    font-size: 2rem;
+    text-align: center;
+  }
+
+  .newsletter-text {
+    max-width: 320px;
+    text-align: center;
+  }
+
+  .subscription-form .form-group {
+    flex-direction: column;
+    border-radius: 8px;
+  }
+
+  .email-input {
+    padding: 0.9rem 1rem;
+    width: 100%;
+  }
+
+  .subscribe-btn {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    border-radius: 8px;
+  }
+}

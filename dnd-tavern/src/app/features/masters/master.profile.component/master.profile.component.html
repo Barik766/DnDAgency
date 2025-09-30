@@ -1,0 +1,22 @@
+<div *ngIf="loading">Загрузка...</div>
+<div *ngIf="error" class="error">{{ error }}</div>
+<div *ngIf="success" class="success">Сохранено!</div>
+
+<div *ngIf="!loading">
+  <h2>Выберите кампании</h2>
+
+  <form>
+    <div *ngFor="let c of allCampaigns">
+      <label>
+        <input
+          type="checkbox"
+          [checked]="selectedCampaigns.has(c.id)"
+          (change)="toggleSelection(c.id, $event)"
+        />
+        {{ c.title }}
+      </label>
+    </div>
+  </form>
+
+  <button (click)="saveSelections()">Сохранить</button>
+</div>

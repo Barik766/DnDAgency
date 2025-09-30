@@ -1,0 +1,71 @@
+.header {
+  background: var(--color-wood-dark);
+  border-bottom: 3px solid var(--color-brass);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  
+  &__container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 70px;
+  }
+  
+  &__logo a {
+    font-family: var(--font-fantasy);
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--color-accent-primary);
+    text-decoration: none;
+    
+    &:hover {
+      color: var(--color-brass);
+    }
+  }
+  
+  &__nav {
+    display: flex;
+    gap: 2rem;
+    
+    a {
+      color: var(--color-text-secondary);
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        color: var(--color-text-primary);
+        background: var(--color-wood-medium);
+      }
+    }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  &__profile-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-wood-light);
+    font-size: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: var(--color-brass);
+    }
+  }
+}

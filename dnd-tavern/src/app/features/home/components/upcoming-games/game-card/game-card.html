@@ -1,0 +1,18 @@
+<div class="game-scroll">
+  <div class="scroll-seal">
+    <img src="/img/seal.png" alt="Seal" class="seal-image">
+  </div>
+  <div class="scroll-content">
+    <h3 class="game-title">{{ game.title }}</h3>
+    
+    <div class="game-image">
+      <img [src]="game.image" [alt]="game.title">
+    </div>
+    
+    <div class="game-details">
+      <div class="game-date">{{ game.date }}</div>
+      <div class="game-time">{{ game.time }}</div>
+      <div class="game-players">{{ game.currentPlayers }}/{{ game.maxPlayers }} players • Level {{ game.level }}</div>
+    </div>
+  </div>
+</div>

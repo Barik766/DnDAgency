@@ -1,0 +1,64 @@
+:host {
+  display: block;
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 1rem;
+  background: var(--color-wood-light);
+  border: 2px solid var(--color-brass);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  font-family: var(--font-sans);
+}
+
+h2 {
+  margin-bottom: 1rem;
+  color: var(--color-brass);
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-brass);
+}
+
+button {
+  margin-top: 1rem;
+  padding: 0.6rem 1.2rem;
+  background: var(--color-accent-primary);
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+button:hover {
+  background: var(--color-brass);
+}
+
+.error {
+  color: #e74c3c;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.success {
+  color: #27ae60;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}

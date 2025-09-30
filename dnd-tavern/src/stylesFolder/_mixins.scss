@@ -1,0 +1,52 @@
+// Миксины для переиспользования
+
+// Пергаментные рваные края
+@mixin parchment-border {
+  position: relative;
+  border-radius: 4px;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: var(--color-brass);
+    border-radius: 6px;
+    z-index: -1;
+    opacity: 0.3;
+  }
+}
+
+// Тени для карточек
+@mixin card-shadow {
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+// Hover эффект подъёма
+@mixin hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 4px 12px rgba(0, 0, 0, 0.4),
+      0 2px 6px rgba(0, 0, 0, 0.3);
+  }
+}
+
+// Responsive breakpoints
+@mixin mobile {
+  @media (max-width: 768px) {
+    @content;
+  }
+}
+
+@mixin tablet {
+  @media (max-width: 1024px) {
+    @content;
+  }
+}

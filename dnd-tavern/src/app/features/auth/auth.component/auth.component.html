@@ -1,0 +1,152 @@
+<div class="auth-container">
+  <div class="tavern-backdrop">
+    <div class="auth-parchment">
+      <!-- Логотип таверны -->
+      <div class="tavern-sign">
+        <h1>🏰 Таверна D&D</h1>
+        <p>Место встречи искателей приключений</p>
+      </div>
+
+      <!-- Переключатель формы -->
+      <div class="form-toggle">
+        <button 
+          type="button"
+          [class.active]="!isRegisterMode()"
+          (click)="toggleMode()">
+          Войти в таверну
+        </button>
+        <button 
+          type="button"
+          [class.active]="isRegisterMode()"
+          (click)="toggleMode()">
+          Стать постояльцем
+        </button>
+      </div>
+
+      <!-- Кнопка Google OAuth -->
+      <div class="google-auth">
+        <button id="google-signin-button" type="button" class="google-btn">
+          Войти через Google
+        </button>
+      </div>
+
+      <!-- Форма входа -->
+      <form *ngIf="!isRegisterMode()" [formGroup]="loginForm" (ngSubmit)="onLogin()" class="auth-form">
+        <h2>🗝️ Вход для постояльцев</h2>
+        
+        <div class="form-group">
+          <label for="loginEmail">Почтовый ящик</label>
+          <input 
+            id="loginEmail"
+            type="email" 
+            formControlName="email"
+            placeholder="your.name@tavern.com"
+            autocomplete="email"
+            [class.error]="getFieldError('email')">
+          <div *ngIf="getFieldError('email')" class="error-message">
+            {{ getFieldError('email') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="loginPassword">Пароль</label>
+          <input 
+            id="loginPassword"
+            type="password" 
+            formControlName="password"
+            placeholder="Секретное слово"
+            autocomplete="current-password"
+            [class.error]="getFieldError('password')">
+          <div *ngIf="getFieldError('password')" class="error-message">
+            {{ getFieldError('password') }}
+          </div>
+        </div>
+
+        <button type="submit" [disabled]="loginForm.invalid || isLoading()" class="cta-button">
+          <span *ngIf="!isLoading()">⚔️ Войти в таверну</span>
+          <span *ngIf="isLoading()">🎲 Бросаем кости...</span>
+        </button>
+      </form>
+
+      <!-- Форма регистрации -->
+      <form *ngIf="isRegisterMode()" [formGroup]="registerForm" (ngSubmit)="onRegister()" class="auth-form">
+        <h2>📜 Регистрация постояльца</h2>
+        
+        <div class="form-group">
+          <label for="registerUsername">Имя искателя приключений</label>
+          <input 
+            id="registerUsername"
+            type="text" 
+            formControlName="username"
+            placeholder="Введите ваше имя"
+            autocomplete="email"
+            [class.error]="getFieldError('username')">
+          <div *ngIf="getFieldError('username')" class="error-message">
+            {{ getFieldError('username') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="registerEmail">Почтовый ящик</label>
+          <input 
+            id="registerEmail"
+            type="email" 
+            formControlName="email"
+            placeholder="your.name@tavern.com"
+            [class.error]="getFieldError('email')">
+          <div *ngIf="getFieldError('email')" class="error-message">
+            {{ getFieldError('email') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="registerPassword">Пароль</label>
+          <input 
+            id="registerPassword"
+            type="password" 
+            formControlName="password"
+            placeholder="Придумайте надежный пароль"
+            autocomplete="new-password"
+            [class.error]="getFieldError('password')">
+          <div *ngIf="getFieldError('password')" class="error-message">
+            {{ getFieldError('password') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword">Подтвердите пароль</label>
+          <input 
+            id="confirmPassword"
+            type="password" 
+            formControlName="confirmPassword"
+            placeholder="Повторите пароль"
+            autocomplete="new-password"
+            [class.error]="getFieldError('confirmPassword')">
+          <div *ngIf="getFieldError('confirmPassword')" class="error-message">
+            {{ getFieldError('confirmPassword') }}
+          </div>
+        </div>
+
+        <div *ngIf="registerForm.errors?.['passwordMismatch'] && registerForm.touched" class="error-message" style="text-align: center; margin-top: -1rem;">
+          Пароли не совпадают
+        </div>
+
+        <button type="submit" [disabled]="registerForm.invalid || isLoading()" class="cta-button">
+          <span *ngIf="!isLoading()">🛡️ Стать постояльцем</span>
+          <span *ngIf="isLoading()">📋 Записываем в книгу...</span>
+        </button>
+
+        
+      </form>
+
+      
+
+      <!-- Уведомления -->
+      <div *ngIf="notification()?.message" 
+           [class]="'notification-banner ' + (notification()?.type || '')">
+        <span class="notification-icon">{{ getNotificationIcon(notification()?.type || '') }}</span>
+        {{ notification()?.message }}
+      </div>
+    </div>
+  </div>
+</div>

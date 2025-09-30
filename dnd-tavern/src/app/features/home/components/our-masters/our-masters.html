@@ -1,0 +1,40 @@
+<section class="our-masters">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">GAME MASTERS</h2>
+      <p class="section-subtitle">Опытные мастера ждут тебя в приключении</p>
+    </div>
+   
+    <div class="masters-grid">
+      <div class="wanted-poster" *ngFor="let master of masters">
+        <div class="nail-bottom-left"></div>
+        <div class="nail-bottom-right"></div>
+       
+        <div class="poster-header">
+          <h3 class="wanted-title">WANTED</h3>
+        </div>
+       
+        <div class="poster-photo">
+          <div class="photo-container">
+            <img
+              *ngIf="master.photoUrl"
+              [src]="'http://localhost:5195/' + master.photoUrl"
+              [alt]="master.name"
+              class="gm-photo">
+            <div
+              *ngIf="!master.photoUrl"
+              class="photo-placeholder">🎭</div>
+          </div>
+        </div>
+       
+        <div class="poster-info">
+          <h4 class="gm-name">{{ master.name }}</h4>
+        </div>
+      </div>
+    </div>
+   
+    <div class="masters-cta">
+      <button class="btn--view-all">Все мастера</button>
+    </div>
+  </div>
+</section>
