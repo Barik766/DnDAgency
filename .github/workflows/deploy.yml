@@ -9,7 +9,7 @@ env:
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
   BACKEND_IMAGE: barik766/dnd-backend
   FRONTEND_IMAGE: barik766/dnd-frontend
-  AWS_REGION: us-east-1
+  AWS_REGION: eu-central-1
   EB_APPLICATION_NAME: dnd-agency
   EB_ENVIRONMENT_NAME: dnd-agency-env
 
