@@ -14,8 +14,18 @@ using DnDAgency.Infrastructure.Interfaces;
 using DnDAgency.Infrastructure.Services;
 using Microsoft.Extensions.FileProviders;
 using DnDAgency.Infrastructure.UnitOfWork;
+using Amazon.Extensions.NETCore.Setup;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// AWS Parameter Store Configuration
+if (!builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddSystemsManager("/dnd-agency", new AWSOptions
+    {
+        Region = Amazon.RegionEndpoint.EUNorth1
+    });
+}
 
 // Add services to the container.
 builder.Services.AddControllers(options =>
