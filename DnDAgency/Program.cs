@@ -19,13 +19,13 @@ using Amazon.Extensions.NETCore.Setup;
 var builder = WebApplication.CreateBuilder(args);
 
 // AWS Parameter Store Configuration
-if (!builder.Environment.IsDevelopment())
-{
-    builder.Configuration.AddSystemsManager("/dnd-agency", new AWSOptions
-    {
-        Region = Amazon.RegionEndpoint.EUNorth1
-    });
-}
+//if (!builder.Environment.IsDevelopment())
+//{
+//    builder.Configuration.AddSystemsManager("/dnd-agency", new AWSOptions
+//    {
+//        Region = Amazon.RegionEndpoint.EUNorth1
+//    });
+//}
 
 // Add services to the container.
 builder.Services.AddControllers(options =>
