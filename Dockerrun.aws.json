@@ -3,7 +3,7 @@
   "containerDefinitions": [
     {
       "name": "frontend",
-      "image": "barik766/dnd-frontend:v2",
+      "image": "barik766/dnd-frontend:v3",
       "essential": true,
       "memory": 1024,
       "portMappings": [

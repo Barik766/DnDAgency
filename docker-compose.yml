@@ -14,7 +14,7 @@ services:
       - GoogleOAuth__ClientSecret=${GoogleOAuth__ClientSecret}
   
   frontend:
-    image: barik766/dnd-frontend:v2
+    image: barik766/dnd-frontend:v3
     ports:
       - "80:80"
     depends_on:
