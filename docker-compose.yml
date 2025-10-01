@@ -5,8 +5,13 @@ services:
     ports:
       - "5000:8080"
     environment:
-      ASPNETCORE_ENVIRONMENT: Production
-      ConnectionStrings__DefaultConnection: "Host=${RDS_HOSTNAME};Port=${RDS_PORT};Database=${RDS_DB_NAME};Username=${RDS_USERNAME};Password=${RDS_PASSWORD}"
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=${RDS_HOSTNAME};Port=${RDS_PORT};Database=${RDS_DB_NAME};Username=${RDS_USERNAME};Password=${RDS_PASSWORD}
+      - JwtSettings__Key=${JwtSettings__Key}
+      - JwtSettings__Issuer=${JwtSettings__Issuer}
+      - JwtSettings__Audience=${JwtSettings__Audience}
+      - GoogleOAuth__ClientId=${GoogleOAuth__ClientId}
+      - GoogleOAuth__ClientSecret=${GoogleOAuth__ClientSecret}
   
   frontend:
     image: barik766/dnd-frontend:latest
