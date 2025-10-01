@@ -7,7 +7,8 @@
       "essential": true,
       "memory": 1024,
       "portMappings": [
-        {
+        {	
+	  "hostPort": 80,
           "containerPort": 80
         }
       ]
