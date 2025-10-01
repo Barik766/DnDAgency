@@ -160,11 +160,15 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseStaticFiles(new StaticFileOptions
+var webRootPath = builder.Environment.WebRootPath;
+if (!string.IsNullOrEmpty(webRootPath) && Directory.Exists(webRootPath))
 {
-    FileProvider = new PhysicalFileProvider(builder.Environment.WebRootPath),
-    RequestPath = "" // URL будет совпадать с относительным путем внутри wwwroot
-});
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(webRootPath),
+        RequestPath = ""
+    });
+}
 
 // Custom middleware
 app.UseHttpsRedirection();
