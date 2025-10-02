@@ -1,12 +1,12 @@
 <div class="my-bookings-page">
   <div class="container">
     <div class="section-header">
-      <h1 class="section-title">МОИ БРОНИРОВАНИЯ</h1>
-      <p class="section-subtitle">Твои грядущие приключения в таверне</p>
+      <h1 class="section-title">MY BOOKINGS</h1>
+      <p class="section-subtitle">Your upcoming tavern adventures</p>
     </div>
 
     <div *ngIf="isLoading" class="loading">
-      <div class="loading-text">Загружаем твои бронирования...</div>
+      <div class="loading-text">Loading your bookings...</div>
     </div>
 
     <div *ngIf="error" class="error-message">
@@ -15,19 +15,19 @@
 
     <div *ngIf="!isLoading && !error && bookings.length === 0" class="empty-state">
       <div class="empty-icon">📜</div>
-      <h3>Пока что бронирований нет</h3>
-      <p>Время отправиться в новое приключение!</p>
+      <h3>No bookings yet</h3>
+      <p>It's time to embark on a new adventure!</p>
     </div>
 
     <div *ngIf="!isLoading && !error && bookings.length > 0" class="bookings-table-container">
       <table class="tavern-table">
         <thead>
           <tr>
-            <th>Дата и время</th>
-            <th>Статус</th>
-            <th>Игроков</th>
-            <th>Название</th>
-            <th>Действия</th>
+            <th>Date & Time</th>
+            <th>Status</th>
+            <th>Players</th>
+            <th>Title</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -43,7 +43,7 @@
               <span class="status-badge" 
                     [class.status-upcoming]="isUpcoming(booking)"
                     [class.status-past]="!isUpcoming(booking)">
-                {{ isUpcoming(booking) ? 'Предстоит' : 'Завершено' }}
+                {{ isUpcoming(booking) ? 'Upcoming' : 'Completed' }}
               </span>
             </td>
             <td class="players-cell">
@@ -56,7 +56,7 @@
               <button *ngIf="isUpcoming(booking)" 
                       class="btn btn-danger btn-sm cancel-btn"
                       (click)="onCancelBooking(booking.id)">
-                Отменить
+                Cancel
               </button>
               <span *ngIf="!isUpcoming(booking)" class="text-muted">—</span>
             </td>

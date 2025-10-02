@@ -13,8 +13,8 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
       <p>{{ message }}</p>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-secondary" (click)="activeModal.dismiss()">Отмена</button>
-      <button class="btn btn-danger" (click)="activeModal.close('ok')">Подтвердить</button>
+      <button class="btn btn-secondary" (click)="activeModal.dismiss()">Cancel</button>
+      <button class="btn btn-danger" (click)="activeModal.close('ok')">Confirm</button>
     </div>
   `,
 })

@@ -15,6 +15,6 @@ export interface Campaign {
   createdAt: string;
   updatedAt: string;
   tags: string[];
-  slots: Slot[];              // <--- здесь будут твои даты и слоты
+  slots: Slot[];              // <--- this will hold dates and slots
   hasAvailableSlots: boolean;
 }

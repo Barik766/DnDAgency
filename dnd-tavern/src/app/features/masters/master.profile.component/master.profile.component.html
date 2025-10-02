@@ -1,9 +1,9 @@
-<div *ngIf="loading">Загрузка...</div>
+<div *ngIf="loading">Loading...</div>
 <div *ngIf="error" class="error">{{ error }}</div>
-<div *ngIf="success" class="success">Сохранено!</div>
+<div *ngIf="success" class="success">Saved!</div>
 
 <div *ngIf="!loading">
-  <h2>Выберите кампании</h2>
+  <h2>Select campaigns</h2>
 
   <form>
     <div *ngFor="let c of allCampaigns">
@@ -18,5 +18,5 @@
     </div>
   </form>
 
-  <button (click)="saveSelections()">Сохранить</button>
+  <button (click)="saveSelections()">Save</button>
 </div>

@@ -71,7 +71,7 @@
 
 }
 
-// Обновленные стили для quick-search, чтобы кнопка FIND была внутри
+// Updated styles for quick-search so the FIND button sits inside
 .quick-search {
   display: flex;
   background: rgba(180, 140, 90, 0.95);
@@ -104,7 +104,7 @@
     background: rgba(244, 228, 188, 0.3);
   }
 
-  // Стили для input date
+  // Styles for date input
   &[type="date"] {
     cursor: pointer;
     
@@ -114,7 +114,7 @@
     }
   }
 
-  // Стили для options в select
+  // Styles for select options
   option {
     background: rgba(180, 140, 90, 0.95);
     color: #2D1810;
@@ -125,7 +125,7 @@
   border-right: 2px solid #915d2b;
 }
 
-// Убираем границу у последнего select (который перед кнопкой)
+// Remove border from the last select (the one next to the button)
 .form-field:nth-child(4) {
   border-right: none;
 }

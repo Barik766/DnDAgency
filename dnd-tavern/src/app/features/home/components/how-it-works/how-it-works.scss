@@ -1,7 +1,7 @@
 .how-it-works {
   padding: 4rem 0;
   background: url('/img/newsletter-bg.png') center/cover no-repeat;
-  position: relative; // Добавлено для позиционирования torn-edge
+  position: relative; // Added to position the torn-edge
 }
 
 .section-title {
@@ -36,12 +36,12 @@
   align-items: center;
   justify-content: space-between;
 
-  // Эффект шероховатого пергамента
+  // Rough parchment effect
   box-shadow:
     inset 0 0 20px rgba(139, 69, 19, 0.1),
     0 4px 8px rgba(0, 0, 0, 0.2);
 
-  // Текстура пергамента
+  // Parchment texture
   background-image:
     radial-gradient(circle at 25% 25%, rgba(139, 69, 19, 0.05) 2px, transparent 2px),
     radial-gradient(circle at 75% 75%, rgba(101, 67, 33, 0.03) 1px, transparent 1px);
@@ -108,7 +108,7 @@
   margin: 0 1rem;
 }
 
-// Рваная бумага для нижней части секции
+// Torn paper for the bottom of the section
 .how-it-works-torn-edge {
   position: absolute;
   bottom: 543px;
@@ -169,7 +169,7 @@
   }
   
   .how-it-works-torn-edge {
-    height: 15px; // Меньше на мобильных
+    height: 15px; // Smaller on mobile
     top: 1584px;
   }
 }

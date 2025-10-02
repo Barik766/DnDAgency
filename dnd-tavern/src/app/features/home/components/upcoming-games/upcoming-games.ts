@@ -41,13 +41,13 @@ export class UpcomingGames implements OnInit {
 
     this.campaignService.getUpcomingGames().subscribe({
       next: (games) => {
-        this.upcomingGames = games.map(this.mapToGame);
+    this.upcomingGames = games.map(this.mapToGame);
         this.isLoading = false;
         this.cdr.markForCheck();
       },
       error: (error) => {
         console.error('Error loading upcoming games:', error);
-        this.error = 'Не удалось загрузить предстоящие игры';
+        this.error = 'Failed to load upcoming games';
         this.isLoading = false;
         this.cdr.markForCheck();
       }
@@ -63,12 +63,12 @@ export class UpcomingGames implements OnInit {
       image: upcomingGame.campaignImageUrl
         ? `http://localhost:5195/${upcomingGame.campaignImageUrl}`
         : '/img/default-game.jpeg',
-      date: startTime.toLocaleDateString('ru-RU', {
+      date: startTime.toLocaleDateString('en-US', {
         weekday: 'long',
         month: 'long',
         day: 'numeric'
       }),
-      time: startTime.toLocaleTimeString('ru-RU', {
+      time: startTime.toLocaleTimeString('en-US', {
         hour: '2-digit',
         minute: '2-digit'
       }),

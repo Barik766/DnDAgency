@@ -1,4 +1,4 @@
-// Базовые стили заголовков
+// Base heading styles
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-fantasy);
   color: var(--color-accent-primary);
@@ -31,7 +31,7 @@ p {
   line-height: 1.6;
 }
 
-// Специальные типографские классы
+// Special typography classes
 .text-fantasy {
   font-family: var(--font-fantasy);
 }

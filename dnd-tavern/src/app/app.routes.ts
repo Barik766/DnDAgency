@@ -3,7 +3,7 @@ import { Routes } from '@angular/router';
 import { adminGuard, gmGuard, guestGuard } from './features/auth/guards/access.guard';
 
 export const routes: Routes = [
-  // Публичные роуты
+  // Public routes
   {
     path: '',
     loadComponent: () => import('./layout/main-layout/main-layout').then(m => m.MainLayout),
@@ -71,11 +71,11 @@ export const routes: Routes = [
         path: 'my-bookings',
         loadComponent: () => import('./features/bookings/my-bookings.component/my-bookings.component')
           .then(m => m.MyBookingsComponent)
-        // Добавишь guard если нужна авторизация
+  // Add a guard here if authentication is required
       }
     ]
   },
-  // Аутентификация (только для неавторизованных)
+  // Authentication (routes for unauthenticated users only)
   {
     path: 'login',
     loadComponent: () => import('./features/auth/auth.component/auth.component').then(m => m.AuthComponent),

@@ -12,13 +12,13 @@ export class MasterService {
 
   constructor(private http: HttpClient) {}
 
-  // назначить кампании мастеру (массово)
+  // Assign campaigns to a master (bulk)
   assignCampaigns(masterId: string, campaignIds: string[]): Observable<any> {
     return this.http.post(`${this.apiUrl}/${masterId}/campaigns/assign`, { campaignIds });
   }
 
 
-  // Получить все кампании для мастера
+  // Get all campaigns for a master
   getMasterCampaigns(masterId: string): Observable<Campaign[]> {
   return this.http.get<{ Success: boolean; Data: Campaign[]; Message: string }>(
     `/api/masters/${masterId}/campaigns`
@@ -26,17 +26,17 @@ export class MasterService {
 }
 
 
-  // Добавить кампанию мастеру
+  // Add a campaign to a master
   addCampaignToMaster(masterId: string, campaignId: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/${masterId}/campaigns`, { campaignId });
   }
 
-  // Удалить кампанию мастера (на будущее, если нужно будет убрать галочку)
+  // Remove a campaign from a master (future use - e.g. uncheck)
   removeCampaignFromMaster(masterId: string, campaignId: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${masterId}/campaigns/${campaignId}`);
   }
 
-  // Получить список всех доступных кампаний (для чекбоксов)
+  // Get list of all available campaigns (for checkboxes)
   getAllCampaigns(): Observable<Campaign[]> {
     return this.http.get<{ Success: boolean; Data: Campaign[]; Message: string }>('/api/campaigns')
       .pipe(
@@ -44,13 +44,13 @@ export class MasterService {
       );
   }
 
-  // Получить всех мастеров
+  // Get all masters
   getAllMasters(): Observable<Master[]> {
     return this.http.get<{ Success: boolean; Data: Master[]; Message: string }>(`${this.apiUrl}`)
       .pipe(map(res => res.Data));
   }
 
-  // Получить ограниченное количество мастеров
+  // Get a limited number of masters
   getMasters(limit?: number): Observable<Master[]> {
     const url = limit ? `${this.apiUrl}?limit=${limit}` : this.apiUrl;
     return this.http.get<any>(url)
