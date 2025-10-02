@@ -1,146 +1,128 @@
-/* newsletter.scss - compiled file (no external variables) */
-
-/* newsletter.scss - cleaned and translated comments */
-
-/* Main section block */
 .newsletter-section {
   padding: 0rem 0;
   background: url('/img/newsletter-bg.png') center/cover no-repeat;
   position: relative;
 }
 
-/* Centering container */
 .container {
   width: 100%;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 0 1rem;
 }
 
-/* Content: image on the left, text on the right. Adjust gap to change spacing. */
 .newsletter-content {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 500px;
-  gap: 3rem; /* change this value to increase/decrease spacing */
+  gap: 3rem; 
 }
 
-/* Scroll image block */
 .scroll-image-container {
-  flex: 0 0 260px; /* width can be adjusted if needed */
+  flex: 0 0 260px; 
 }
 
 .scroll-image {
   display: block;
   width: 100%;
   height: auto;
+  image-rendering: auto;
 }
 
-/* Newsletter text block */
-.newsletter {
-  padding: 3rem 0;
-  background: linear-gradient(180deg, rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('/public/img/newsletter-bg.png');
-  background-size: cover;
-  color: #fff;
-  text-align: center;
+.newsletter-text {
+  max-width: 560px;
+  text-align: left;
+  color: #2c1810; 
+}
 
-  .newsletter-inner {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 2rem;
-  }
+.newsletter-title {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 2.8rem; 
+  line-height: 1.05;
+  color: #3a2417; 
+  margin: 0 0 0.6rem 0;
+  font-weight: 700;
+}
 
-  .newsletter-title {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
-  }
 
-  .newsletter-subtitle {
-    font-size: 1rem;
-    margin-bottom: 1.5rem;
-  }
+.newsletter-description {
+  font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  margin: 0 0 1.25rem 0;
+  color: #4f3529; 
+}
 
-  .newsletter-form {
+
+.subscription-form {
+  .form-group {
     display: flex;
-    justify-content: center;
-    gap: 1rem;
-
-    .input {
-      background: rgba(255,255,255,0.1);
-      border: 1px solid rgba(255,255,255,0.2);
-      padding: 0.8rem 1rem;
-      color: #fff;
-      width: 320px;
-
-      &::placeholder {
-        color: rgba(255,255,255,0.7);
-      }
-    }
-
-    .btn {
-      background: #8B4513;
-      color: #F4E4BC;
-      border: none;
-      padding: 0.8rem 1.2rem;
-      cursor: pointer;
-    }
-  }
-
-  .newsletter-message {
-    margin-top: 1rem;
-    font-size: 0.9rem;
-  }
-
-  .email-input {
-    outline: none;
-    caret-color: #3a2417;
-
-    &::placeholder {
-      color: rgba(44,24,16,0.55);
-      font-style: normal;
-    }
-
-    &:focus {
-      outline: none; /* no outline effects */
-    }
-
-    &:disabled {
-      opacity: 0.7;
-      cursor: not-allowed;
-    }
+    align-items: center;
+    gap: 0;
+    max-width: 480px;
+    margin: 0;
+    border-radius: 9px;
+    overflow: hidden;
+    border: 2px solid rgb(106, 58, 36);
+    background: rgba(255,255,255,0); 
   }
 }
 
-/* Subscribe button — rounded, brown background, no border or effects */
+.email-input {
+  flex: 1;
+  padding: 1rem 1.25rem;
+  border: none; 
+  background: transparent; 
+  color: #2c1810; 
+  font-size: 1rem;
+  outline: none;
+  caret-color: #3a2417;
+
+  &::placeholder {
+    color: rgba(44,24,16,0.55);
+    font-style: normal;
+  }
+
+  &:focus {
+    outline: none; 
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+}
+
+
 .subscribe-btn {
   padding: 17px 26px;
-  background: #6a3a24; /* approximate brown background for the button */
-  color: #f7eedc;       /* light text */
-  border: none;         /* no border */
+  background: #6a3a24; 
+  color: #f7eedc;      
+  border: none;         
   cursor: pointer;
   font-family: Georgia, 'Times New Roman', serif;
   font-size: 1rem;
   font-weight: 700;
-  border-radius: 7px; /* fully rounded */
+  border-radius: 7px; 
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: none;     /* no shadow */
-  transition: none;     /* no hover effects/animations */
+  box-shadow: none;     
+  transition: none;  
 }
 
-/* Disable hover/active visuals so the button remains static as in the mock */
+
 .subscribe-btn:hover,
 .subscribe-btn:active,
 .subscribe-btn:focus {
-  background: #6a3a24; /* remains the same color */
+  background: #6a3a24; 
   transform: none;
   outline: none;
   box-shadow: none;
 }
 
-/* Decorative torn edge under the newsletter block */
 .newsletter-torn-edge {
   position: absolute;
   bottom: 460px;
@@ -177,7 +159,7 @@
   }
 }
 
-/* --- Responsive --- */
+/* --- Adaptive --- */
 @media (max-width: 768px) {
   .newsletter-content {
     flex-direction: column;
@@ -216,4 +198,3 @@
     border-radius: 8px;
   }
 }
-

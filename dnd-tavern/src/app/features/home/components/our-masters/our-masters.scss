@@ -183,16 +183,16 @@
 
 .poster-info {
   text-align: center;
-}
 
-.poster-info .gm-name {
-  font-family: 'Creepster', 'Nosifer', serif;
-  color: #8B4513;
-  font-size: 1.8rem;
-  margin: 0;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  line-height: 1.2;
+  .gm-name {
+    font-family: 'Creepster', 'Nosifer', serif;
+    color: #8B4513;
+    font-size: 1.8rem;
+    margin: 0;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    line-height: 1.2;
+  }
 }
 
 .masters-cta {

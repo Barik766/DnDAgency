@@ -1,31 +1,31 @@
 <div class="campaigns-page">
   <div class="container">
     <div class="page-header">
-      <h1 class="page-title">Все кампании</h1>
-      <p class="page-subtitle">Выберите свое приключение</p>
+  <h1 class="page-title">All Campaigns</h1>
+  <p class="page-subtitle">Choose your adventure</p>
     </div>
 
     <!-- Loader -->
     <div *ngIf="isLoading" class="loading-state">
       <div class="parchment-card">
-        <p>Загрузка кампаний...</p>
+  <p>Loading campaigns...</p>
       </div>
     </div>
 
     <!-- Error state -->
     <div *ngIf="error" class="error-state">
       <div class="parchment-card">
-        <h3>Ошибка загрузки</h3>
+  <h3>Error loading</h3>
         <p>{{ error }}</p>
-        <button (click)="loadCampaigns()" class="retry-btn">Повторить</button>
+  <button (click)="loadCampaigns()" class="retry-btn">Retry</button>
       </div>
     </div>
 
     <!-- Empty state -->
     <div *ngIf="!isLoading && !error && campaigns.length === 0" class="empty-state">
       <div class="parchment-card">
-        <h3>Нет доступных кампаний</h3>
-        <p>Пока что нет активных кампаний для участия</p>
+  <h3>No available campaigns</h3>
+  <p>There are no active campaigns available right now.</p>
       </div>
     </div>
 

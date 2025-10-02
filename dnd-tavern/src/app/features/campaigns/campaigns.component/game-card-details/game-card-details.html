@@ -1,27 +1,27 @@
 <div class="campaign-details-page">
   <div class="container">
     
-    <!-- Состояния загрузки и ошибок -->
+    <!-- Loading and error states -->
     @if (isLoading) {
       <div class="loading-state">
         <div class="loading-icon">⚔️</div>
-        <p>Готовим приключение...</p>
+        <p>Preparing your adventure...</p>
       </div>
     }
 
     @if (error) {
       <div class="error-state">
         <div class="error-icon">🛡️</div>
-        <h3>Упс! Что-то пошло не так</h3>
+        <h3>Oops! Something went wrong</h3>
         <p>{{ error }}</p>
       </div>
     }
 
-    <!-- Основной контент -->
+    <!-- Main content -->
     @if (!isLoading && campaign) {
       <div class="campaign-content">
         
-        <!-- Заголовок кампании -->
+        <!-- Campaign header -->
         <div class="campaign-header">
           <div class="campaign-image-container">
             <img [src]="campaign.imageUrl" [alt]="campaign.title" class="campaign-image">
@@ -34,21 +34,21 @@
             
             <div class="campaign-stats">
               <div class="stat-item">
-                <span class="stat-label">Уровень</span>
+                <span class="stat-label">Level</span>
                 <span class="stat-value">{{ campaign.level }}</span>
               </div>
               <div class="stat-item">
-                <span class="stat-label">Цена</span>
+                <span class="stat-label">Price</span>
                 <span class="stat-value">${{ campaign.price }}</span>
               </div>
               @if (campaign.durationHours) {
                 <div class="stat-item">
-                  <span class="stat-label">Длительность</span>
-                  <span class="stat-value">{{ campaign.durationHours }}ч</span>
+                  <span class="stat-label">Duration</span>
+                  <span class="stat-value">{{ campaign.durationHours }}h</span>
                 </div>
               }
               <div class="stat-item">
-                <span class="stat-label">Мастер</span>
+                <span class="stat-label">Dungeon Master</span>
                 <span class="stat-value">{{ campaign.masterName }}</span>
               </div>
             </div>
@@ -61,31 +61,31 @@
           </div>
         </div>
 
-        <!-- Секция бронирования -->
+        <!-- Booking section -->
         <div class="booking-section">
-          <h2 class="section-title">ЗАБРОНИРОВАТЬ ПРИКЛЮЧЕНИЕ</h2>
+          <h2 class="section-title">BOOK AN ADVENTURE</h2>
           
-          <!-- Выбор типа игры -->
+          <!-- Choose game type -->
           <div class="booking-step">
-            <h3 class="step-title">Тип приключения</h3>
+            <h3 class="step-title">Adventure type</h3>
             <div class="game-type-options">
               <label class="radio-option">
                 <input type="radio" name="gameType" value="online" [(ngModel)]="selectedGameType" (change)="onGameTypeChange()">
                 <span class="radio-custom"></span>
-                <span class="option-text">🌐 Онлайн</span>
+                <span class="option-text">🌐 Online</span>
               </label>
               <label class="radio-option">
                 <input type="radio" name="gameType" value="offline" [(ngModel)]="selectedGameType" (change)="onGameTypeChange()">
                 <span class="radio-custom"></span>
-                <span class="option-text">🏠 Оффлайн</span>
+                <span class="option-text">🏠 Offline</span>
               </label>
             </div>
           </div>
 
-          <!-- Выбор даты -->
+          <!-- Choose date -->
           @if (selectedGameType) {
             <div class="booking-step">
-              <h3 class="step-title">Выберите дату</h3>
+              <h3 class="step-title">Select date</h3>
               <div class="input-group">
                 <input
                   type="date"
@@ -99,15 +99,15 @@
             </div>
           }
 
-          <!-- Выбор времени -->
+          <!-- Choose time -->
           @if (selectedDate) {
             <div class="booking-step">
-              <h3 class="step-title">Выберите время</h3>
+              <h3 class="step-title">Select time</h3>
               
               @if (isLoadingTimeSlots) {
                 <div class="loading-slots">
                   <span class="spinner">⏳</span>
-                  Ищем свободные слоты...
+                  Searching for available slots...
                 </div>
               }
 
@@ -118,14 +118,14 @@
                     [formControl]="bookingForm.controls['dateTime']"
                     (change)="onTimeSlotChange($event)"
                   >
-                    <option value="">🕐 Выберите время</option>
+                    <option value="">🕐 Select time</option>
                     <option
                       *ngFor="let timeSlot of availableTimeSlots"
                       [value]="timeSlot.dateTime"
                       [disabled]="!timeSlot.isAvailable"
                     >
                       {{ timeSlot.dateTime | date:'HH:mm' }} 
-                      ({{ timeSlot.maxPlayers - timeSlot.currentPlayers }} мест)
+                      ({{ timeSlot.maxPlayers - timeSlot.currentPlayers }} spots)
                     </option>
                   </select>
                 </div>
@@ -134,16 +134,16 @@
               @if (!isLoadingTimeSlots && availableTimeSlots.length === 0) {
                 <div class="no-slots">
                   <div class="no-slots-icon">📅</div>
-                  <p>На выбранную дату нет свободных слотов</p>
+                  <p>No available slots for the selected date</p>
                 </div>
               }
             </div>
           }
 
-          <!-- Выбор количества игроков -->
+          <!-- Choose number of players -->
           @if (selectedDateTime) {
             <div class="booking-step">
-              <h3 class="step-title">Количество участников</h3>
+              <h3 class="step-title">Number of participants</h3>
               <div class="players-selection">
                 <input
                   type="number"
@@ -154,17 +154,17 @@
                   [formControl]="bookingForm.controls['players']"
                   placeholder="1"
                 />
-                <span class="players-text">из {{ getMaxPlayersForTimeSlot() }} возможных</span>
+                <span class="players-text">out of {{ getMaxPlayersForTimeSlot() }} available</span>
               </div>
               
-              <!-- Кнопка бронирования -->
+              <!-- Booking button -->
               <div class="booking-action">
                 <button 
                   class="btn btn--primary btn--large"
                   (click)="onReserve()" 
                   [disabled]="!selectedDateTime"
                 >
-                  ⚔️ ЗАБРОНИРОВАТЬ ПРИКЛЮЧЕНИЕ
+                  ⚔️ BOOK AN ADVENTURE
                 </button>
               </div>
             </div>

@@ -89,7 +89,7 @@ export class CampaignsComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Error loading campaigns:', error);
-        this.error = 'Не удалось загрузить кампании. Попробуйте позже.';
+  this.error = 'Failed to load campaigns. Please try again later.';
         this.isLoading = false;
         this.cdr.markForCheck();
       }
