@@ -4,7 +4,7 @@ import { Observable, map } from 'rxjs';
 import { Campaign } from '../interfaces/campaign.interface';
 import { UpcomingGame } from '../interfaces/upcoming-game.interface';
 
-// Тип ответа от API
+// API response type
 interface ApiResponse<T> {
   Success: boolean;
   Data: T;
@@ -51,11 +51,11 @@ export class CampaignService {
       .pipe(map(response => response.Data));
   }
 
-  // НОВЫЙ МЕТОД: Получение доступных временных слотов для кампании на дату
+  // NEW METHOD: Get available time slots for a campaign on a specific date
   getAvailableTimeSlots(campaignId: string, date: string, roomType: 'Online' | 'Physical'): Observable<AvailableTimeSlot[]> {
     return this.http
       .get<any>(`${this.apiUrl}/${campaignId}/available-slots?date=${date}&roomType=${roomType}`)
-      .pipe(map(response => response.Data.data)); // было response.data
+      .pipe(map(response => response.Data.data)); // previously response.data
   }
 
   createCampaign(formData: FormData): Observable<Campaign> {
@@ -74,8 +74,8 @@ export class CampaignService {
     return this.http.patch<Campaign>(`${this.apiUrl}/${id}/toggle-status`, null);
   }
 
-  // УДАЛЕНЫ методы для управления слотами:
-  // getCampaignSlots() - больше не нужен
-  // addSlotToCampaign() - слоты создаются автоматически при бронировании
-  // removeSlotFromCampaign() - слоты создаются автоматически при бронировании
+  // REMOVED: slot management methods
+  // getCampaignSlots() - no longer needed
+  // addSlotToCampaign() - slots are created automatically when booking
+  // removeSlotFromCampaign() - slots are created automatically when booking
 }

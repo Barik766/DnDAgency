@@ -1,7 +1,7 @@
 interface Slot {
   id: string;
   campaignId: string;
-  startTime: string; // ISO string с бэка
+  startTime: string; // ISO string from backend
   currentPlayers: number;
   availableSlots: number;
   isFull: boolean;

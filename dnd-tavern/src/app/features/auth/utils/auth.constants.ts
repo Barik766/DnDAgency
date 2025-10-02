@@ -22,34 +22,34 @@ export const AUTH_CONFIG = {
 
 export const ERROR_MESSAGES = {
   LOGIN: {
-    INVALID_CREDENTIALS: 'Неверный логин или пароль. Попробуйте еще раз.',
-    NETWORK_ERROR: 'Ошибка сети. Проверьте соединение с интернетом.',
-    UNKNOWN_ERROR: 'Произошла неизвестная ошибка при входе.'
+    INVALID_CREDENTIALS: 'Invalid username or password. Please try again.',
+    NETWORK_ERROR: 'Network error. Please check your internet connection.',
+    UNKNOWN_ERROR: 'An unknown error occurred during login.'
   },
   REGISTER: {
-    EMAIL_EXISTS: 'Пользователь с таким email уже существует.',
-    WEAK_PASSWORD: 'Пароль слишком слабый.',
-    INVALID_DATA: 'Некорректные данные регистрации.',
-    UNKNOWN_ERROR: 'Произошла ошибка при регистрации.'
+    EMAIL_EXISTS: 'A user with this email already exists.',
+    WEAK_PASSWORD: 'The password is too weak.',
+    INVALID_DATA: 'Invalid registration data.',
+    UNKNOWN_ERROR: 'An error occurred during registration.'
   },
   TOKEN: {
-    INVALID: 'Недействительный токен авторизации.',
-    EXPIRED: 'Сессия истекла. Войдите в систему заново.',
-    NOT_FOUND: 'Токен авторизации не найден.'
+    INVALID: 'Invalid authorization token.',
+    EXPIRED: 'Session expired. Please log in again.',
+    NOT_FOUND: 'Authorization token not found.'
   },
   VALIDATION: {
-    REQUIRED: 'Поле обязательно для заполнения',
-    EMAIL_INVALID: 'Введите корректный email адрес',
-    PASSWORD_TOO_SHORT: 'Пароль должен содержать минимум 6 символов',
-    USERNAME_TOO_SHORT: 'Имя пользователя должно содержать минимум 3 символа',
-    USERNAME_INVALID: 'Имя пользователя может содержать только буквы, цифры и подчеркивания'
+    REQUIRED: 'This field is required.',
+    EMAIL_INVALID: 'Please enter a valid email address.',
+    PASSWORD_TOO_SHORT: 'Password must be at least 6 characters long.',
+    USERNAME_TOO_SHORT: 'Username must be at least 3 characters long.',
+    USERNAME_INVALID: 'Username can only contain letters, numbers, and underscores.'
   }
 } as const;
 
 export const SUCCESS_MESSAGES = {
-  LOGIN: 'Добро пожаловать в таверну! 🎉',
-  REGISTER: 'Регистрация успешна! Теперь можете войти в таверну.',
-  LOGOUT: 'Вы успешно вышли из системы.',
-  PASSWORD_CHANGED: 'Пароль успешно изменен.',
-  PROFILE_UPDATED: 'Профиль успешно обновлен.'
+  LOGIN: 'Welcome to the tavern! 🎉',
+  REGISTER: 'Registration successful! You can now enter the tavern.',
+  LOGOUT: 'You have successfully logged out.',
+  PASSWORD_CHANGED: 'Password changed successfully.',
+  PROFILE_UPDATED: 'Profile updated successfully.'
 } as const;

@@ -61,30 +61,30 @@ export class FormValidationService {
     const errors = field.errors;
     
     if (errors['required']) {
-      return `${this.getFieldDisplayName(fieldName)} обязательно для заполнения`;
+      return `${this.getFieldDisplayName(fieldName)} is required`;
     }
     if (errors['email']) {
-      return 'Введите корректный email адрес';
+      return 'Please enter a valid email address';
     }
     if (errors['minlength']) {
       const required = errors['minlength'].requiredLength;
-      return `Минимум ${required} символов (введено: ${errors['minlength'].actualLength})`;
+      return `Minimum ${required} characters (entered: ${errors['minlength'].actualLength})`;
     }
     if (errors['maxlength']) {
       const required = errors['maxlength'].requiredLength;
-      return `Максимум ${required} символов (введено: ${errors['maxlength'].actualLength})`;
+      return `Maximum ${required} characters (entered: ${errors['maxlength'].actualLength})`;
     }
     if (errors['invalidUsername']) {
-      return 'Имя пользователя может содержать только буквы, цифры и подчеркивания';
+      return 'Username can only contain letters, numbers, and underscores';
     }
     if (errors['weakPassword']) {
-      return 'Пароль должен содержать минимум одну цифру и одну букву';
+      return 'Password must contain at least one digit and one letter';
     }
     if (errors['passwordMismatch']) {
-      return 'Пароли не совпадают';
+      return 'Passwords do not match';
     }
     
-    return 'Некорректное значение';
+    return 'Invalid value';
   }
 
   getFormErrors(form: FormGroup): string[] {
@@ -95,9 +95,9 @@ export class FormValidationService {
       if (error) errors.push(error);
     });
 
-    // Проверяем ошибки на уровне формы
+    // Check form-level errors
     if (form.errors?.['passwordMismatch']) {
-      errors.push('Пароли не совпадают');
+      errors.push('Passwords do not match');
     }
 
     return errors;
@@ -111,11 +111,11 @@ export class FormValidationService {
   private getFieldDisplayName(fieldName: string): string {
     const names: { [key: string]: string } = {
       email: 'Email',
-      password: 'Пароль',
-      username: 'Имя пользователя',
-      currentPassword: 'Текущий пароль',
-      newPassword: 'Новый пароль',
-      confirmPassword: 'Подтверждение пароля'
+      password: 'Password',
+      username: 'Username',
+      currentPassword: 'Current password',
+      newPassword: 'New password',
+      confirmPassword: 'Confirm password'
     };
     return names[fieldName] || fieldName;
   }

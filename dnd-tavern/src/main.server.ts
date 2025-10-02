@@ -2,7 +2,7 @@ import { bootstrapApplication, BootstrapContext } from '@angular/platform-browse
 import { App } from './app/app';
 import { config } from './app/app.config.server';
 
-// Новый подход для Angular 20.3+ с BootstrapContext
+// New approach for Angular 20.3+ using BootstrapContext
 const bootstrap = (context: BootstrapContext) => 
   bootstrapApplication(App, config, context);
 

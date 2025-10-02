@@ -21,13 +21,13 @@ export class NewsletterComponent {
 
     this.isSubmitting = true;
     
-    // Имитация отправки запроса
+      // Simulate sending request
     setTimeout(() => {
       this.isSubmitting = false;
       this.isSubscribed = true;
       this.email = '';
       
-      // Через 3 секунды скрыть сообщение об успехе
+  // Hide success message after 3 seconds
       setTimeout(() => {
         this.isSubscribed = false;
       }, 3000);

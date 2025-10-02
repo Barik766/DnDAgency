@@ -35,7 +35,7 @@ export class OurMastersComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading masters:', error);
-        this.error = 'Не удалось загрузить мастеров';
+  this.error = 'Failed to load masters';
         this.isLoading = false;
         this.cdr.markForCheck();
       }
@@ -43,10 +43,10 @@ export class OurMastersComponent implements OnInit {
   }
 
   onMasterClick(master: Master): void {
-    console.log('Выбран мастер:', master);
+  console.log('Selected master:', master);
   }
 
   onViewAllMasters(): void {
-    console.log('Показать всех мастеров');
+  console.log('Show all masters');
   }
 }

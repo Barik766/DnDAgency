@@ -1,6 +1,6 @@
-// Миксины для переиспользования
+// Reusable mixins
 
-// Пергаментные рваные края
+// Parchment torn-edge border
 @mixin parchment-border {
   position: relative;
   border-radius: 4px;
@@ -19,14 +19,14 @@
   }
 }
 
-// Тени для карточек
+// Card shadows
 @mixin card-shadow {
   box-shadow: 
     0 2px 8px rgba(0, 0, 0, 0.3),
     0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-// Hover эффект подъёма
+// Hover lift effect
 @mixin hover-lift {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   

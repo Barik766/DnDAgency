@@ -5,7 +5,7 @@ import { appConfig } from './app.config';
 const serverConfig: ApplicationConfig = {
   providers: [
     provideServerRendering()
-    // Убрал withRoutes(serverRoutes) - это может быть причиной проблемы
+    // Removed withRoutes(serverRoutes) — this might have been the cause of the issue
   ]
 };
 

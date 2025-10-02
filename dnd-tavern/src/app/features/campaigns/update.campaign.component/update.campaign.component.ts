@@ -25,8 +25,8 @@ export class UpdateCampaignComponent implements OnInit {
   campaignId!: string;
 
   roomTypes = [
-    { value: 'Physical', label: 'Физические игры' },
-    { value: 'Online', label: 'Онлайн игры' }
+    { value: 'Physical', label: 'In-person games' },
+    { value: 'Online', label: 'Online games' }
   ];
 
   form = this.fb.group({
@@ -58,7 +58,7 @@ export class UpdateCampaignComponent implements OnInit {
           durationHours: campaign.durationHours
         });
 
-        // Устанавливаем поддерживаемые типы комнат
+  // Set supported room types
         const roomTypesArray = this.supportedRoomTypesArray;
         roomTypesArray.clear();
         campaign.supportedRoomTypes?.forEach(type => {
@@ -66,8 +66,8 @@ export class UpdateCampaignComponent implements OnInit {
         });
       },
       error: (err) => {
-        console.error('Ошибка при загрузке кампании:', err);
-        this.error = 'Не удалось загрузить кампанию';
+        console.error('Error loading campaign:', err);
+        this.error = 'Failed to load campaign';
       }
     });
   }
@@ -119,7 +119,7 @@ export class UpdateCampaignComponent implements OnInit {
     formData.append('maxPlayers', this.form.value.maxPlayers!.toString());
     formData.append('durationHours', this.form.value.durationHours!.toString());
 
-    // Добавляем поддерживаемые типы комнат
+  // Add supported room types
     const roomTypes = this.supportedRoomTypesArray.value;
     roomTypes.forEach((type: string) => formData.append('supportedRoomTypes', type));
 
@@ -133,8 +133,8 @@ export class UpdateCampaignComponent implements OnInit {
         this.router.navigate(['/campaigns']);
       },
       error: (err) => {
-        console.error('Ошибка при обновлении кампании:', err);
-        this.error = 'Не удалось обновить кампанию. Попробуйте позже.';
+        console.error('Error updating campaign:', err);
+        this.error = 'Failed to update campaign. Please try again later.';
         this.isSubmitting = false;
       }
     });

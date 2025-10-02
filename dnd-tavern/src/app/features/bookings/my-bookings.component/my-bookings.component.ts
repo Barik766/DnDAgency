@@ -42,7 +42,7 @@ export class MyBookingsComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading bookings:', error);
-        this.error = 'Не удалось загрузить бронирования';
+        this.error = 'Failed to load bookings';
         this.isLoading = false;
         this.cdr.markForCheck();
       }
@@ -54,8 +54,8 @@ export class MyBookingsComponent implements OnInit {
     if (!booking) return;
 
     const modalRef = this.modalService.open(ConfirmationModal);
-    modalRef.componentInstance.title = 'Отменить бронирование';
-    modalRef.componentInstance.message = `Вы уверены, что хотите отменить бронирование на ${this.formatDate(booking.slot.startTime)}?`;
+  modalRef.componentInstance.title = 'Cancel booking';
+  modalRef.componentInstance.message = `Are you sure you want to cancel the booking on ${this.formatDate(booking.slot.startTime)}?`;
 
     modalRef.result.then((result) => {
       if (result === 'ok') {
@@ -66,7 +66,7 @@ export class MyBookingsComponent implements OnInit {
           },
           error: (error) => {
             console.error('Error canceling booking:', error);
-            this.error = 'Не удалось отменить бронирование';
+            this.error = 'Failed to cancel booking';
             this.cdr.markForCheck();
           }
         });
@@ -76,7 +76,7 @@ export class MyBookingsComponent implements OnInit {
 
   formatDate(dateString: string): string {
     const date = new Date(dateString);
-    return date.toLocaleString('ru-RU', {
+    return date.toLocaleString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',

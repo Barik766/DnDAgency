@@ -25,10 +25,10 @@ export class MasterProfileComponent implements OnInit {
   success: boolean = false;
 
   ngOnInit(): void {
-    // Берём текущего пользователя
+  // Take the current user
     this.masterId = this.userStateService.getUserId();
     if (!this.masterId) {
-      this.error = 'Не удалось определить текущего мастера';
+      this.error = 'Failed to determine current master';
       return;
     }
 
@@ -52,13 +52,13 @@ export class MasterProfileComponent implements OnInit {
             this.cdr.detectChanges();
           },
           error: (err) => {
-            this.error = 'Ошибка загрузки кампаний мастера';
+            this.error = 'Error loading master campaigns';
             this.loading = false;
           }
         });
       },
       error: (err) => {
-        this.error = 'Ошибка загрузки списка кампаний';
+        this.error = 'Error loading campaign list';
         this.loading = false;
       }
     });
@@ -89,7 +89,7 @@ export class MasterProfileComponent implements OnInit {
         this.cdr.detectChanges();
       },
       error: () => {
-        this.error = 'Ошибка сохранения';
+        this.error = 'Failed to save';
         this.loading = false;
         this.cdr.detectChanges();
       }

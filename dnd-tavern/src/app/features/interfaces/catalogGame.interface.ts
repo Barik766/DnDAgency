@@ -1,6 +1,6 @@
 export interface CatalogGame {
   isActive: boolean;
-  id: string;             // GUID из сервера
+  id: string;             // GUID from server
   title: string;
   image: string;
   level: number;

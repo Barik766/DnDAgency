@@ -4,5 +4,5 @@ interface AvailableTimeSlot {
   currentPlayers: number;
   maxPlayers: number;
   availableSlots: number;
-  roomType: number; // было 'Online' | 'Physical'
+  roomType: number; // previously 'Online' | 'Physical'
 }

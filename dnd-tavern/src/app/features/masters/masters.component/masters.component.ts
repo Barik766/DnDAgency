@@ -30,13 +30,13 @@ export class MastersComponent implements OnInit {
    
     this.masterService.getAllMasters().subscribe({
       next: (masters) => {
-        this.masters = masters; // Показываем всех мастеров
+  this.masters = masters; // Show all masters
         this.isLoading = false;
         this.cdr.detectChanges();
       },
       error: (error) => {
         console.error('Error loading masters:', error);
-        this.error = 'Не удалось загрузить мастеров';
+  this.error = 'Failed to load masters';
         this.isLoading = false;
         this.cdr.detectChanges();
       }

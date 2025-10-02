@@ -1,31 +1,32 @@
 <div class="create-campaign-page">
   <div class="container">
     <h1>Создать кампанию</h1>
+      <h1>Create campaign</h1>
     <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
       <div class="form-group">
-        <label for="title">Название</label>
+          <label for="title">Title</label>
         <input id="title" type="text" formControlName="title" />
         <div class="error" *ngIf="form.get('title')?.touched && form.get('title')?.invalid">
-          Название обязательно (мин. 3 символа)
+            Title is required (min. 3 characters)
         </div>
       </div>
       <div class="form-group">
-        <label for="description">Описание</label>
+          <label for="description">Description</label>
         <textarea id="description" rows="5" formControlName="description"></textarea>
         <div class="error" *ngIf="form.get('description')?.touched && form.get('description')?.invalid">
-          Описание обязательно (мин. 10 символов)
+            Description is required (min. 10 characters)
         </div>
       </div>
       <div class="form-group">
-        <label for="image">Картинка</label>
+          <label for="image">Image</label>
         <input id="image" type="file" (change)="onFileSelected($event)" />
         <div class="error" *ngIf="fileError">
-          Картинка обязательна
+            Image is required
         </div>
       </div>
       
       <div class="form-group">
-        <label>Типы проведения игр</label>
+        <label>Game types</label>
         <div class="room-types">
           <div class="checkbox-group" *ngFor="let roomType of roomTypes">
             <input 
@@ -36,38 +37,38 @@
           </div>
         </div>
         <div class="error" *ngIf="form.get('supportedRoomTypes')?.touched && form.get('supportedRoomTypes')?.invalid">
-          Выберите хотя бы один тип проведения игры
+            Select at least one game type
         </div>
       </div>
 
       <div class="form-inline">
         <div class="form-group">
-          <label for="level">Уровень</label>
+            <label for="level">Level</label>
           <input id="level" type="number" formControlName="level" />
         </div>
         <div class="form-group">
-          <label for="price">Цена (за сессию)</label>
+            <label for="price">Price (per session)</label>
           <input id="price" type="number" formControlName="price" />
         </div>
       </div>
       <div class="form-inline">
         <div class="form-group">
-          <label for="maxPlayers">Макс. игроков</label>
+            <label for="maxPlayers">Max players</label>
           <input id="maxPlayers" type="number" formControlName="maxPlayers" />
         </div>
         <div class="form-group">
-          <label for="durationHours">Длительность (часы)</label>
+            <label for="durationHours">Duration (hours)</label>
           <input id="durationHours" type="number" formControlName="durationHours" />
         </div>
       </div>
       <div class="form-group">
-        <label for="tags">Теги (через запятую)</label>
-        <input id="tags" type="text" formControlName="tags" placeholder="например: Horror, Epic, Roleplay"/>
+          <label for="tags">Tags (comma separated)</label>
+          <input id="tags" type="text" formControlName="tags" placeholder="e.g.: Horror, Epic, Roleplay"/>
       </div>
       <div class="error" *ngIf="error">{{ error }}</div>
       <div class="actions">
-        <button type="submit" [disabled]="isSubmitting">Создать</button>
-        <button type="button" (click)="router.navigate(['/campaigns'])">Отмена</button>
+          <button type="submit" [disabled]="isSubmitting">Create</button>
+          <button type="button" (click)="router.navigate(['/campaigns'])">Cancel</button>
       </div>
     </form>
   </div>

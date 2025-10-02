@@ -13,20 +13,20 @@ export class HowItWorksComponent {
   steps = [
     {
       number: 1,
-      title: 'Выбери кампанию',
-      description: 'Найди подходящую игру по жанру, уровню и расписанию',
+      title: 'Choose a campaign',
+      description: 'Find a suitable game by genre, level, and schedule',
       icon: '🎲'
     },
     {
       number: 2,
-      title: 'Выбери слот',
-      description: 'Забронируй удобное время для игры',
+      title: 'Pick a slot',
+      description: 'Reserve a convenient time to play',
       icon: '📅'
     },
     {
       number: 3,
-      title: 'Забронируй',
-      description: 'Оплати и получи подтверждение брони',
+      title: 'Book',
+      description: 'Pay and receive booking confirmation',
       icon: '✨'
     }
   ];

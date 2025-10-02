@@ -22,8 +22,8 @@ export class CreateCampaignComponent {
   fileError = false;
 
   roomTypes = [
-    { value: 'Physical', label: 'Физические игры' },
-    { value: 'Online', label: 'Онлайн игры' }
+    { value: 'Physical', label: 'In-person games' },
+    { value: 'Online', label: 'Online games' }
   ];
 
   form = this.fb.group({
@@ -85,7 +85,7 @@ export class CreateCampaignComponent {
     formData.append('maxPlayers', this.form.value.maxPlayers!.toString());
     formData.append('durationHours', this.form.value.durationHours!.toString());
     
-    // Добавляем поддерживаемые типы комнат
+  // Add supported room types
     const roomTypes = this.supportedRoomTypesArray.value;
     roomTypes.forEach((type: string) => formData.append('supportedRoomTypes', type));
 
@@ -98,7 +98,7 @@ export class CreateCampaignComponent {
       },
       error: (err) => {
         console.error('Error creating campaign:', err);
-        this.error = 'Не удалось создать кампанию. Попробуйте позже.';
+  this.error = 'Failed to create campaign. Please try again.';
         this.isSubmitting = false;
       }
     });

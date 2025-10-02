@@ -2,19 +2,19 @@
   position: relative;
   height: 400px;
   width: 270px;
-  /* Базовый цвет состаренной бумаги */
+  /* Base color for aged parchment */
   background: var(--color-parchment-component);
-  /* Квадратные рамки как на картинке */
+  /* Square borders (as in the design) */
   border: 4px solid #8B4513;
-  /* Убираем скругления для квадратного вида */
+  /* Remove rounding for a square look */
   border-radius: 0;
-  /* Естественная тень */
+  /* Natural shadow */
   box-shadow:
     3px 3px 8px rgba(0, 0, 0, 0.4),
     1px 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-/* Печать в верхней части */
+/* Seal at the top */
 .scroll-seal {
   position: absolute;
   top: -31px;
@@ -49,11 +49,11 @@
   width: 100%;
   height: 160px;
   margin: 0 auto 1rem;
-  /* Квадратная внутренняя рамка */
+  /* Square inner border */
   border: 2px solid #654321;
   border-radius: 0;
   overflow: hidden;
-  /* Легкая внутренняя тень */
+  /* Subtle inner shadow */
   box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.2);
 
   img {
@@ -88,7 +88,7 @@
   font-weight: 500;
 }
 
-/* Адаптивность */
+/* Responsive adjustments */
 @media (max-width: 480px) {
   .game-scroll {
     width: 100%;

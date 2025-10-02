@@ -1,11 +1,11 @@
 <div class="masters-page">
   <div class="container">
     <div class="section-header">
-      <h1 class="section-title">ВСЕ МАСТЕРА</h1>
-      <p class="section-subtitle">Выбери своего проводника в мир приключений</p>
+  <h1 class="section-title">ALL MASTERS</h1>
+  <p class="section-subtitle">Choose your guide to adventure</p>
     </div>
    
-    <div *ngIf="isLoading" class="loading">Загрузка мастеров...</div>
+  <div *ngIf="isLoading" class="loading">Loading masters...</div>
     <div *ngIf="error" class="error">{{ error }}</div>
    
     <div class="masters-grid" *ngIf="!isLoading && !error">
