@@ -38,15 +38,15 @@ export class AuthComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-  console.log('ngOnInit called, isPlatformBrowser:', isPlatformBrowser(this.platformId));
-  if (isPlatformBrowser(this.platformId)) {
-    console.log('Checking google object:', typeof google);
-    this.initializeGoogleSignIn();
+    console.log('ngOnInit called, isPlatformBrowser:', isPlatformBrowser(this.platformId));
+    if (isPlatformBrowser(this.platformId)) {
+      console.log('Checking google object:', typeof google);
+      this.initializeGoogleSignIn();
+    }
   }
-}
 
   ngOnDestroy(): void {
-    // Очистка при необходимости
+    // Cleanup if necessary
   }
 
   get notification() {
@@ -118,7 +118,7 @@ export class AuthComponent implements OnInit, OnDestroy {
   }
 
   signInWithGoogle(): void {
-    // Метод вызывается автоматически через Google Button
+    // This method is called automatically via Google Button
   }
 
   private initializeGoogleSignIn(): void {
@@ -159,31 +159,31 @@ export class AuthComponent implements OnInit, OnDestroy {
 
   private handleLoginSuccess(response: any): void {
     if (response.Success) {
-      this.notifications.showSuccess('Добро пожаловать в таверну! 🎉');
+      this.notifications.showSuccess('Welcome to the tavern! 🎉');
       const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
       setTimeout(() => {
         this.setLoading(false);
         this.router.navigate([returnUrl]);
       }, 1500);
     } else {
-      this.notifications.showError(response.Message || 'Ошибка входа');
+      this.notifications.showError(response.Message || 'Login error');
       this.setLoading(false);
     }
   }
 
   private handleLoginError(error: any): void {
-    const message = this.extractErrorMessage(error, 'Неверный логин или пароль. Попробуйте еще раз.');
+    const message = this.extractErrorMessage(error, 'Invalid login or password. Please try again.');
     this.notifications.showError(message);
   }
 
   private handleRegisterSuccess(): void {
-    this.notifications.showSuccess('Регистрация успешна! Теперь можете войти в таверну.');
+    this.notifications.showSuccess('Registration successful! Now you can enter the tavern.');
     this.isRegisterMode.set(false);
     this.registerForm.reset();
   }
 
   private handleRegisterError(error: any): void {
-    const message = this.extractErrorMessage(error, 'Ошибка регистрации. Возможно, такой email уже используется.');
+    const message = this.extractErrorMessage(error, 'Registration error. This email may already be in use.');
     this.notifications.showError(message);
   }
 
