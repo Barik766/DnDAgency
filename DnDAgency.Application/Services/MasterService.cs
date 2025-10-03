@@ -12,21 +12,35 @@ namespace DnDAgency.Application.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IFileStorageService _fileStorageService;
         private readonly IUserService _userService;
+        private readonly ICacheService _cacheService;
 
         public MasterService(
             IUnitOfWork unitOfWork,
             IFileStorageService fileStorageService,
-            IUserService userService)
+            IUserService userService,
+            ICacheService cacheService)
         {
             _unitOfWork = unitOfWork;
             _fileStorageService = fileStorageService;
             _userService = userService;
+            _cacheService = cacheService;
         }
 
         public async Task<List<MasterDto>> GetAllAsync()
         {
+            const string cacheKey = "masters_all";
+
+            var cached = await _cacheService.GetAsync<List<MasterDto>>(cacheKey);
+            if (cached != null)
+                return cached;
+
             var masters = await _unitOfWork.Masters.GetAllAsync();
-            return masters.Where(m => m.IsActive).Select(MapToDto).ToList();
+            var result = masters.Where(m => m.IsActive).Select(MapToDto).ToList();
+
+            // Мастера меняются редко - 15 минут
+            await _cacheService.SetAsync(cacheKey, result, TimeSpan.FromMinutes(15));
+
+            return result;
         }
 
         public async Task<MasterDto> GetByIdAsync(Guid id)
@@ -58,6 +72,8 @@ namespace DnDAgency.Application.Services
                 await _unitOfWork.Masters.AddAsync(master);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitTransactionAsync();
+
+                await _cacheService.RemoveAsync("masters_all");
 
                 return MapToDto(master);
             }
@@ -100,6 +116,8 @@ namespace DnDAgency.Application.Services
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitTransactionAsync();
 
+                await _cacheService.RemoveAsync("masters_all");
+
                 return MapAdminDto(master);
             }
             catch
@@ -126,6 +144,9 @@ namespace DnDAgency.Application.Services
 
             _unitOfWork.Masters.Update(master);
             await _unitOfWork.SaveChangesAsync();
+
+            await _cacheService.RemoveAsync("masters_all");
+
             return MapToDto(master);
         }
 
@@ -141,6 +162,8 @@ namespace DnDAgency.Application.Services
             master.Deactivate();
             _unitOfWork.Masters.Update(master);
             await _unitOfWork.SaveChangesAsync();
+
+            await _cacheService.RemoveAsync("masters_all");
         }
 
         public async Task<List<CampaignDto>> GetMasterCampaignsAsync(Guid userId)

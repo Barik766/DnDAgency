@@ -12,13 +12,16 @@ namespace DnDAgency.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConflictCheckService _conflictCheckService;
+        private readonly ICacheService _cacheService;
 
         public BookingService(
             IUnitOfWork unitOfWork,
-            IConflictCheckService conflictCheckService)
+            IConflictCheckService conflictCheckService,
+            ICacheService cacheService)
         {
             _unitOfWork = unitOfWork;
             _conflictCheckService = conflictCheckService;
+            _cacheService = cacheService;
         }
 
         public async Task<BookingDto> CreateBookingAsync(Guid userId, Guid campaignId, DateTime startTime, int playersCount = 1)
@@ -113,6 +116,10 @@ namespace DnDAgency.Application.Services
 
                 await _unitOfWork.CommitTransactionAsync();
 
+                // Инвалидация кешей
+                await _cacheService.RemoveAsync("upcoming_games");
+                await _cacheService.RemoveAsync("campaigns_catalog");
+
                 // Перезагружаем бронирование с полными данными
                 booking = await _unitOfWork.Bookings.GetByIdAsync(booking.Id);
                 return MapToDto(booking!);
@@ -154,6 +161,10 @@ namespace DnDAgency.Application.Services
                 _unitOfWork.Slots.Delete(booking.Slot);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitTransactionAsync();
+
+                // Инвалидация кешей
+                await _cacheService.RemoveAsync("upcoming_games");
+                await _cacheService.RemoveAsync("campaigns_catalog");
             }
             catch
             {
@@ -222,7 +233,7 @@ namespace DnDAgency.Application.Services
 
         private static SlotDto MapSlotToDto(Slot slot)
         {
-            var currentPlayers = slot.Bookings.Sum(b => b.PlayersCount); 
+            var currentPlayers = slot.Bookings.Sum(b => b.PlayersCount);
             var availableSlots = slot.Campaign.MaxPlayers - currentPlayers;
 
             return new SlotDto
