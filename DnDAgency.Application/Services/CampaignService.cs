@@ -1,5 +1,6 @@
 ﻿using DnDAgency.Application.DTOs.BookingsDTO;
 using DnDAgency.Application.DTOs.CampaignsDTO;
+using DnDAgency.Application.Interfaces;
 using DnDAgency.Domain.Entities;
 using DnDAgency.Domain.Interfaces;
 using DnDAgency.Infrastructure.Interfaces;
@@ -11,15 +12,18 @@ namespace DnDAgency.Application.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IFileStorageService _fileStorageService;
         private readonly IConflictCheckService _conflictCheckService;
+        private readonly ICacheService _cacheService;
 
         public CampaignService(
             IUnitOfWork unitOfWork,
             IFileStorageService fileStorageService,
-            IConflictCheckService conflictCheckService)
+            IConflictCheckService conflictCheckService,
+            ICacheService cacheService)
         {
             _unitOfWork = unitOfWork;
             _fileStorageService = fileStorageService;
             _conflictCheckService = conflictCheckService;
+            _cacheService = cacheService;
         }
 
         // --- Получение данных ---
@@ -95,6 +99,8 @@ namespace DnDAgency.Application.Services
                 await _unitOfWork.Campaigns.AddAsync(campaign);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitTransactionAsync();
+
+                await _cacheService.RemoveAsync("campaigns_catalog");
 
                 return MapToDto(campaign);
             }
@@ -191,6 +197,9 @@ namespace DnDAgency.Application.Services
 
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitTransactionAsync();
+
+                await _cacheService.RemoveAsync("campaigns_catalog");
+
                 return MapToDto(campaign);
             }
             catch
@@ -217,6 +226,8 @@ namespace DnDAgency.Application.Services
 
             campaign.Deactivate();
             await _unitOfWork.SaveChangesAsync();
+
+            await _cacheService.RemoveAsync("campaigns_catalog");
         }
 
         // --- Переключение активности ---
@@ -234,6 +245,9 @@ namespace DnDAgency.Application.Services
                 campaign.Activate();
 
             await _unitOfWork.SaveChangesAsync();
+
+            await _cacheService.RemoveAsync("campaigns_catalog");
+
             return MapToDto(campaign);
         }
 
@@ -249,18 +263,41 @@ namespace DnDAgency.Application.Services
 
         public async Task<List<CampaignCatalogDto>> GetCampaignCatalogAsync()
         {
-            var campaigns = await _unitOfWork.Campaigns.GetCampaignCatalogAsync();
+            const string cacheKey = "campaigns_catalog";
 
+            // Пытаемся получить из кеша
+            var cached = await _cacheService.GetAsync<List<CampaignCatalogDto>>(cacheKey);
+            if (cached != null)
+                return cached;
+
+            // Если в кеше нет - берем из БД
+            var campaigns = await _unitOfWork.Campaigns.GetCampaignCatalogAsync();
             var campaignIds = campaigns.Select(c => c.Id).ToList();
             var campaignIdsWithSlots = await _unitOfWork.Slots.GetCampaignIdsWithAvailableSlotsAsync(campaignIds);
 
-            return campaigns.Select(c => MapToCampaignCatalogDto(c, campaignIdsWithSlots.Contains(c.Id))).ToList();
+            var result = campaigns.Select(c => MapToCampaignCatalogDto(c, campaignIdsWithSlots.Contains(c.Id))).ToList();
+
+            // Сохраняем в кеш на 5 минут
+            await _cacheService.SetAsync(cacheKey, result, TimeSpan.FromMinutes(5));
+
+            return result;
         }
 
         public async Task<List<UpcomingGameDto>> GetUpcomingGamesAsync()
         {
+            const string cacheKey = "upcoming_games";
+
+            var cached = await _cacheService.GetAsync<List<UpcomingGameDto>>(cacheKey);
+            if (cached != null)
+                return cached;
+
             var slots = await _unitOfWork.Slots.GetUpcomingSlotsAsync();
-            return slots.Select(MapToUpcomingGameDto).ToList();
+            var result = slots.Select(MapToUpcomingGameDto).ToList();
+
+            // Upcoming games меняются при букинге - 3 минуты
+            await _cacheService.SetAsync(cacheKey, result, TimeSpan.FromMinutes(3));
+
+            return result;
         }
 
         public async Task<List<AvailableTimeSlot>> GetAvailableTimeSlotsAsync(Guid campaignId, DateTime date, RoomType roomType)
@@ -363,10 +400,10 @@ namespace DnDAgency.Application.Services
                 SlotId = slot.Id,
                 CampaignId = campaign.Id,
                 CampaignTitle = campaign.Title,
-                CampaignImageUrl = campaign.ImageUrl, // Добавь если есть
+                CampaignImageUrl = campaign.ImageUrl,
                 Level = campaign.Level,
                 StartTime = slot.StartTime,
-                MaxPlayers = campaign.MaxPlayers, // Добавь эту строку
+                MaxPlayers = campaign.MaxPlayers,
                 BookedPlayers = slot.CurrentPlayers,
                 AvailableSlots = campaign.MaxPlayers - slot.Bookings.Count,
                 IsFull = (campaign.MaxPlayers - slot.Bookings.Count) <= 0

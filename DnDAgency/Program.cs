@@ -42,6 +42,13 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     )
 );
 
+// Redis Cache
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("Redis");
+    options.InstanceName = "DnDAgency_";
+});
+
 // Repository registration 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ICampaignRepository, CampaignRepository>();
@@ -59,7 +66,9 @@ builder.Services.AddScoped<ICampaignService, CampaignService>();
 builder.Services.AddScoped<IMasterService, MasterService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IConflictCheckService, ConflictCheckService>();
+builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
 
 builder.Services.AddSingleton<IFileStorageService>(
     new LocalFileStorageService(

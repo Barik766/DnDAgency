@@ -1,5 +1,18 @@
 version: '3.8'
 services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
   backend:
     image: barik766/dnd-backend:latest
     ports:
@@ -7,11 +20,15 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Host=${RDS_HOSTNAME};Port=${RDS_PORT};Database=${RDS_DB_NAME};Username=${RDS_USERNAME};Password=${RDS_PASSWORD}
+      - ConnectionStrings__Redis=${REDIS_HOST:-redis:6379}
       - JwtSettings__Key=${JwtSettings__Key}
       - JwtSettings__Issuer=${JwtSettings__Issuer}
       - JwtSettings__Audience=${JwtSettings__Audience}
       - GoogleOAuth__ClientId=${GoogleOAuth__ClientId}
       - GoogleOAuth__ClientSecret=${GoogleOAuth__ClientSecret}
+    depends_on:
+      redis:
+        condition: service_healthy
   
   frontend:
     image: barik766/dnd-frontend:v3
@@ -19,3 +36,6 @@ services:
       - "80:80"
     depends_on:
       - backend
+
+volumes:
+  redis-data:
