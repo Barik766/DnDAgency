@@ -13,8 +13,7 @@
         public CampaignTag(string name, Guid campaignId)
         {
             ValidateName(name);
-
-            Name = name;
+            Name = NormalizeName(name);
             CampaignId = campaignId;
         }
 
@@ -24,6 +23,16 @@
                 throw new ArgumentException("Tag name cannot be empty");
             if (name.Length > 50)
                 throw new ArgumentException("Tag name cannot exceed 50 characters");
+        }
+
+        private static string NormalizeName(string name)
+        {
+            name = name.Trim();
+
+            if (string.IsNullOrEmpty(name))
+                return name;
+
+            return char.ToUpper(name[0]) + name.Substring(1).ToLower();
         }
     }
 }

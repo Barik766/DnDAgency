@@ -155,8 +155,16 @@ namespace DnDAgency.Application.Services
                     masters
                 );
 
-                if (dto.Tags != null)
-                    campaign.Tags.AddRange(dto.Tags.Select(tag => new CampaignTag(tag, campaign.Id)));
+                if (dto.Tags != null && dto.Tags.Any())
+                {
+                    var uniqueTags = dto.Tags
+                        .Select(tag => tag.Trim())
+                        .Where(tag => !string.IsNullOrWhiteSpace(tag))
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .ToList();
+
+                    campaign.Tags.AddRange(uniqueTags.Select(tag => new CampaignTag(tag, campaign.Id)));
+                }
 
                 await _unitOfWork.Campaigns.AddAsync(campaign);
                 await _unitOfWork.SaveChangesAsync();
@@ -222,7 +230,13 @@ namespace DnDAgency.Application.Services
                 // Обработка тегов
                 if (dto.Tags != null)
                 {
-                    await _unitOfWork.Campaigns.UpdateCampaignTagsAsync(campaign.Id, dto.Tags);
+                    var uniqueTags = dto.Tags
+                        .Select(tag => tag.Trim())
+                        .Where(tag => !string.IsNullOrWhiteSpace(tag))
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .ToList();
+
+                    await _unitOfWork.Campaigns.UpdateCampaignTagsAsync(campaign.Id, uniqueTags);
                 }
 
                 // Обработка мастеров (только для админа)

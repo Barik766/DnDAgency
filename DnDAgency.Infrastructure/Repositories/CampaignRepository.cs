@@ -127,9 +127,16 @@ public partial class CampaignRepository : GenericRepository<Campaign>, ICampaign
         var existingTags = await _context.Set<CampaignTag>()
             .Where(t => t.CampaignId == campaignId)
             .ToListAsync();
+
         _context.Set<CampaignTag>().RemoveRange(existingTags);
-        var newTags = tagNames.Select(name => new CampaignTag(name, campaignId));
-        await _context.Set<CampaignTag>().AddRangeAsync(newTags);
+
+        var uniqueTags = tagNames
+            .Select(name => name.Trim())
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Select(name => new CampaignTag(name, campaignId));
+
+        await _context.Set<CampaignTag>().AddRangeAsync(uniqueTags);
     }
 
     public async Task<List<Room>> GetRoomsByTypesAsync(List<string> roomTypes)
