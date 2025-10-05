@@ -158,7 +158,13 @@ namespace DnDAgency.Application.Services
                     throw new ArgumentException("Cannot cancel booking less than 2 hours before start");
 
                 _unitOfWork.Bookings.Delete(booking);
-                _unitOfWork.Slots.Delete(booking.Slot);
+
+                if (booking.Slot.Bookings.Count == 1)
+                {
+                    _unitOfWork.Slots.Delete(booking.Slot);
+                }
+
+                await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitTransactionAsync();
 
