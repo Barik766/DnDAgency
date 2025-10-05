@@ -9,13 +9,10 @@ public interface ICampaignService
     Task<CampaignDto> UpdateAsync(Guid id, UpdateCampaignDto dto, Guid currentUserId, string role, Guid? masterUserId = null);
     Task DeleteAsync(Guid id, Guid currentUserId, string role, Guid? masterUserId = null);
     Task<CampaignDto> ToggleStatusAsync(Guid id, Guid currentUserId, string role, Guid? masterUserId = null);
-
-    // Новый метод для получения доступных временных слотов
     Task<List<AvailableTimeSlot>> GetAvailableTimeSlotsAsync(Guid campaignId, DateTime date, RoomType roomType);
-
-    // Методы для отображения данных
     Task<CampaignDetailsDto> GetCampaignDetailsAsync(Guid id);
     Task<List<CampaignCatalogDto>> GetCampaignCatalogAsync();
+    Task<PagedResultDto<CampaignCatalogDto>> GetCampaignCatalogPagedAsync(int pageNumber, int pageSize);
+    Task<PagedResultDto<CampaignCatalogDto>> GetCampaignCatalogFilteredAsync(CampaignFilterDto filter);
     Task<List<UpcomingGameDto>> GetUpcomingGamesAsync();
-
 }

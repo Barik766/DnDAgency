@@ -42,6 +42,68 @@ namespace DnDAgency.Application.Services
             return MapToDto(campaign);
         }
 
+        public async Task<PagedResultDto<CampaignCatalogDto>> GetCampaignCatalogPagedAsync(int pageNumber, int pageSize)
+        {
+            if (pageNumber < 1) pageNumber = 1;
+            if (pageSize < 1) pageSize = 12;
+            if (pageSize > 100) pageSize = 100; 
+
+            var (campaigns, totalCount) = await _unitOfWork.Campaigns.GetCampaignCatalogPagedAsync(pageNumber, pageSize);
+
+            var campaignIds = campaigns.Select(c => c.Id).ToList();
+            var campaignIdsWithSlots = await _unitOfWork.Slots.GetCampaignIdsWithAvailableSlotsAsync(campaignIds);
+
+            var items = campaigns.Select(c => MapToCampaignCatalogDto(c, campaignIdsWithSlots.Contains(c.Id))).ToList();
+
+            return new PagedResultDto<CampaignCatalogDto>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+        }
+
+        // Добавь в класс CampaignService
+
+        public async Task<PagedResultDto<CampaignCatalogDto>> GetCampaignCatalogFilteredAsync(CampaignFilterDto filter)
+        {
+            if (filter.PageNumber < 1) filter.PageNumber = 1;
+            if (filter.PageSize < 1) filter.PageSize = 12;
+            if (filter.PageSize > 100) filter.PageSize = 100;
+
+            var (campaigns, totalCount) = await _unitOfWork.Campaigns.GetCampaignCatalogFilteredAsync(
+                filter.Search,
+                filter.Tag,
+                filter.HasSlots,
+                filter.SortBy,
+                filter.PageNumber,
+                filter.PageSize
+            );
+
+            var campaignIds = campaigns.Select(c => c.Id).ToList();
+            var campaignIdsWithSlots = await _unitOfWork.Slots.GetCampaignIdsWithAvailableSlotsAsync(campaignIds);
+
+            var items = campaigns
+                .Select(c => MapToCampaignCatalogDto(c, campaignIdsWithSlots.Contains(c.Id)))
+                .ToList();
+
+            // Применяем фильтр по hasSlots после получения информации о слотах
+            if (filter.HasSlots.HasValue)
+            {
+                items = items.Where(c => c.HasAvailableSlots == filter.HasSlots.Value).ToList();
+                totalCount = items.Count; // Обновляем общее количество
+            }
+
+            return new PagedResultDto<CampaignCatalogDto>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageNumber = filter.PageNumber,
+                PageSize = filter.PageSize
+            };
+        }
+
         // --- Создание кампании ---
         public async Task<CampaignDto> CreateAsync(CreateCampaignDto dto, Guid? currentUserId = null, string role = "Master")
         {

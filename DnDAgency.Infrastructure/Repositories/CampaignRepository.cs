@@ -171,5 +171,72 @@ public partial class CampaignRepository : GenericRepository<Campaign>, ICampaign
         }
     }
 
+    public async Task<(List<Campaign> Campaigns, int TotalCount)> GetCampaignCatalogPagedAsync(int pageNumber, int pageSize)
+    {
+        var query = _dbSet
+            .Include(c => c.Tags)
+            .AsNoTracking();
+
+        var totalCount = await query.CountAsync();
+
+        var campaigns = await query
+            .OrderBy(c => c.Title)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (campaigns, totalCount);
+    }
+
+    // Добавь в класс CampaignRepository
+
+    public async Task<(List<Campaign> Campaigns, int TotalCount)> GetCampaignCatalogFilteredAsync(
+        string? search,
+        string? tag,
+        bool? hasSlots,
+        string sortBy,
+        int pageNumber,
+        int pageSize)
+    {
+        var query = _dbSet
+            .Include(c => c.Tags)
+            .AsNoTracking()
+            .AsQueryable();
+
+        // Search filter
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var searchLower = search.ToLower();
+            query = query.Where(c => c.Title.ToLower().Contains(searchLower));
+        }
+
+        // Tag filter
+        if (!string.IsNullOrWhiteSpace(tag))
+        {
+            query = query.Where(c => c.Tags.Any(t => t.Name == tag));
+        }
+
+        // HasSlots filter будет применён после получения данных о слотах
+        // т.к. HasAvailableSlots вычисляется в сервисе
+
+        // Sorting
+        query = sortBy.ToLower() switch
+        {
+            "priceasc" => query.OrderBy(c => c.Price),
+            "pricedesc" => query.OrderByDescending(c => c.Price),
+            "level" => query.OrderBy(c => c.Level),
+            _ => query.OrderBy(c => c.Title)
+        };
+
+        var totalCount = await query.CountAsync();
+
+        var campaigns = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (campaigns, totalCount);
+    }
+
 
 }

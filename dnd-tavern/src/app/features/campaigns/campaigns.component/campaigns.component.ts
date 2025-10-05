@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, inject, computed, ChangeDetectorRef, Chan
 import { Router, NavigationEnd } from '@angular/router';
 import { Subject, filter, takeUntil } from 'rxjs';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { CampaignService } from '../../services/campaign.service';
 import { GameCardCatalog } from './game-card-catalog/game-card-catalog';
 import { UserStateService } from '../../auth/services/user-state.service';
@@ -11,15 +12,30 @@ import { Campaign } from '../../interfaces/campaign.interface';
 @Component({
   selector: 'app-campaigns',
   standalone: true,
-  imports: [CommonModule, GameCardCatalog],
+  imports: [CommonModule, FormsModule, GameCardCatalog],
   templateUrl: './campaigns.component.html',
   styleUrls: ['./campaigns.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CampaignsComponent implements OnInit, OnDestroy {
-  campaigns: CatalogGame[] = [];
+  filteredCampaigns: CatalogGame[] = [];
+  paginatedCampaigns: CatalogGame[] = [];
+  availableTags: string[] = [];
   isLoading = false;
   error: string | null = null;
+  
+  // Pagination
+  currentPage = 1;
+  pageSize = 12;
+  totalPages = 1;
+  
+  filters = {
+    search: '',
+    selectedTag: '',
+    hasSlots: ''
+  };
+  
+  sortBy: string = 'title';
   
   private destroy$ = new Subject<void>();
   private router = inject(Router);
@@ -32,6 +48,7 @@ export class CampaignsComponent implements OnInit, OnDestroy {
   );
 
   ngOnInit() {
+    this.loadAllTags();
     this.loadCampaigns();
     this.subscribeToRouteChanges();
   }
@@ -75,44 +92,110 @@ export class CampaignsComponent implements OnInit, OnDestroy {
     };
   }
 
+  private loadAllTags() {
+    // Загружаем все теги один раз для dropdown
+    this.campaignService.getCampaignCatalog().subscribe({
+      next: (catalog) => {
+        const tagsSet = new Set<string>();
+        catalog.forEach(campaign => {
+          campaign.tags?.forEach(tag => tagsSet.add(tag));
+        });
+        this.availableTags = Array.from(tagsSet).sort();
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        console.error('Error loading tags:', error);
+      }
+    });
+  }
+
   loadCampaigns() {
     this.isLoading = true;
     this.error = null;
-   
-    this.campaignService.getCampaignCatalog().subscribe({
-      next: (catalog) => {
-        this.campaigns = catalog
+  
+    this.campaignService.getCampaignCatalogPaged(
+      this.currentPage,
+      this.pageSize,
+      this.filters.search || undefined,
+      this.filters.selectedTag || undefined,
+      this.filters.hasSlots ? this.filters.hasSlots === 'true' : undefined,
+      this.sortBy
+    ).subscribe({
+      next: (result) => {
+        this.filteredCampaigns = result.items
           .map(c => this.mapCampaignToCatalogGame(c))
           .filter(c => c.isActive || this.isMasterOrAdmin());
+        
+        this.paginatedCampaigns = this.filteredCampaigns;
+        this.totalPages = result.totalPages;  
+        
         this.isLoading = false;
         this.cdr.markForCheck();
       },
       error: (error) => {
         console.error('Error loading campaigns:', error);
-  this.error = 'Failed to load campaigns. Please try again later.';
+        this.error = 'Failed to load campaigns. Please try again later.';
         this.isLoading = false;
         this.cdr.markForCheck();
       }
     });
   }
 
+  applyFilters() {
+    this.currentPage = 1;
+    this.loadCampaigns();
+  }
+
+  resetFilters() {
+    this.filters = {
+      search: '',
+      selectedTag: '',
+      hasSlots: ''
+    };
+    this.sortBy = 'title';
+    this.applyFilters();
+  }
+
+  changePage(page: number) {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+    this.loadCampaigns();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  getPageNumbers(): number[] {
+    const pages: number[] = [];
+    const maxVisible = 5;
+    
+    if (this.totalPages <= maxVisible) {
+      for (let i = 1; i <= this.totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (this.currentPage <= 3) {
+        for (let i = 1; i <= maxVisible; i++) {
+          pages.push(i);
+        }
+      } else if (this.currentPage >= this.totalPages - 2) {
+        for (let i = this.totalPages - maxVisible + 1; i <= this.totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        for (let i = this.currentPage - 2; i <= this.currentPage + 2; i++) {
+          pages.push(i);
+        }
+      }
+    }
+    
+    return pages;
+  }
+
   onGameDeleted(gameId: string) {
-    this.campaigns = this.campaigns.filter(game => game.id !== gameId);
-    this.cdr.markForCheck();
+    this.loadCampaigns();
   }
 
   onGameUpdated(updatedGame: any) {
-    const catalogGame = this.mapUpdatedCampaignToCatalogGame(updatedGame);
-    const index = this.campaigns.findIndex(game => game.id === catalogGame.id);
-    
-    if (index !== -1) {
-      this.campaigns[index] = catalogGame;
-      
-      if (!catalogGame.isActive && !this.isMasterOrAdmin()) {
-        this.campaigns = this.campaigns.filter(game => game.id !== catalogGame.id);
-      }
-    }
-    this.cdr.markForCheck();
+    this.loadCampaigns();
   }
 
   trackByGameId(index: number, game: CatalogGame): string {

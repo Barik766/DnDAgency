@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { Campaign } from '../interfaces/campaign.interface';
 import { UpcomingGame } from '../interfaces/upcoming-game.interface';
+import {PagedResult} from '../interfaces/paged-result.interface';
 
 // API response type
 interface ApiResponse<T> {
@@ -10,7 +11,6 @@ interface ApiResponse<T> {
   Data: T;
   Message: string;
 }
-
 
 
 @Injectable({
@@ -39,6 +39,30 @@ export class CampaignService {
       .pipe(map(response => response.Data));
   }
 
+  getCampaignCatalogPaged(
+    pageNumber: number = 1,
+    pageSize: number = 12,
+    search?: string,
+    tag?: string,
+    hasSlots?: boolean,
+    sortBy: string = 'title'
+  ): Observable<PagedResult<Campaign>> {
+    let params = new HttpParams()
+      .set('pageNumber', pageNumber.toString())
+      .set('pageSize', pageSize.toString())
+      .set('sortBy', sortBy);
+
+    if (search) params = params.set('search', search);
+    if (tag) params = params.set('tag', tag);
+    if (hasSlots !== undefined && hasSlots !== null) {
+      params = params.set('hasSlots', hasSlots.toString());
+    }
+
+    return this.http
+      .get<ApiResponse<PagedResult<Campaign>>>(`${this.apiUrl}/catalog/paged`, { params })
+      .pipe(map(response => response.Data));  
+  }
+
   getCampaignDetails(id: string): Observable<Campaign> {
     return this.http
       .get<ApiResponse<Campaign>>(`${this.apiUrl}/${id}`)
@@ -51,11 +75,10 @@ export class CampaignService {
       .pipe(map(response => response.Data));
   }
 
-  // NEW METHOD: Get available time slots for a campaign on a specific date
   getAvailableTimeSlots(campaignId: string, date: string, roomType: 'Online' | 'Physical'): Observable<AvailableTimeSlot[]> {
     return this.http
       .get<any>(`${this.apiUrl}/${campaignId}/available-slots?date=${date}&roomType=${roomType}`)
-      .pipe(map(response => response.Data.data)); // previously response.data
+      .pipe(map(response => response.Data.data));
   }
 
   createCampaign(formData: FormData): Observable<Campaign> {
@@ -73,9 +96,4 @@ export class CampaignService {
   toggleCampaignStatus(id: string): Observable<Campaign> {
     return this.http.patch<Campaign>(`${this.apiUrl}/${id}/toggle-status`, null);
   }
-
-  // REMOVED: slot management methods
-  // getCampaignSlots() - no longer needed
-  // addSlotToCampaign() - slots are created automatically when booking
-  // removeSlotFromCampaign() - slots are created automatically when booking
 }

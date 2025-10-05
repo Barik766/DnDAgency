@@ -185,6 +185,62 @@
       }
     }
 
+   
+
+    .filters-panel {
+      background: var(--color-parchment);
+      border: 3px solid var(--color-brass);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .filters-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr auto;
+      gap: 1rem;
+      align-items: center;
+
+      @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .filter-input,
+    .filter-select {
+      padding: 0.75rem;
+      border: 2px solid var(--color-wood-medium);
+      border-radius: 4px;
+      background: var(--color-parchment-dark);
+      color: var(--color-text-primary);
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+
+      &:focus {
+        outline: none;
+        border-color: var(--color-brass);
+        box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+      }
+    }
+
+    .btn-reset {
+      padding: 0.75rem 1.5rem;
+      background: var(--color-accent-primary);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+
+      &:hover {
+        background: var(--color-accent-dark);
+        transform: translateY(-1px);
+      }
+    }
+
 
     @media (max-width: 768px) {
       .campaigns-grid {

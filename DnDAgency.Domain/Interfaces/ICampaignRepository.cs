@@ -10,6 +10,14 @@ public interface ICampaignRepository : IRepository<Campaign>
     Task<List<Campaign>> GetByMasterIdAsync(Guid masterId);
     Task<List<Campaign>> GetByUserIdAsync(Guid userId);
     Task<List<Campaign>> GetCampaignCatalogAsync();
+    Task<(List<Campaign> Campaigns, int TotalCount)> GetCampaignCatalogPagedAsync(int pageNumber, int pageSize);
+    Task<(List<Campaign> Campaigns, int TotalCount)> GetCampaignCatalogFilteredAsync(
+        string? search,
+        string? tag,
+        bool? hasSlots,
+        string sortBy,
+        int pageNumber,
+        int pageSize);
     Task<List<Campaign>> GetByRoomIdAsync(Guid roomId);
     Task<List<Campaign>> GetOnlineCampaignsByMasterIdAsync(Guid masterId);
     Task<Campaign?> GetByIdWithSlotsAsync(Guid id);

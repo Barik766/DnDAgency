@@ -1,38 +1,84 @@
 <div class="campaigns-page">
   <div class="container">
     <div class="page-header">
-  <h1 class="page-title">All Campaigns</h1>
-  <p class="page-subtitle">Choose your adventure</p>
+      <h1 class="page-title">All Campaigns</h1>
+      <p class="page-subtitle">Choose your adventure</p>
+    </div>
+
+    <!-- Filters panel -->
+    <div class="filters-panel">
+      <div class="filters-row">
+        <!-- Search -->
+        <input 
+          type="text" 
+          class="filter-input"
+          placeholder="Search by title..."
+          [(ngModel)]="filters.search"
+          (ngModelChange)="applyFilters()">
+
+        <!-- Tags filter -->
+        <select 
+          class="filter-select"
+          [(ngModel)]="filters.selectedTag"
+          (ngModelChange)="applyFilters()">
+          <option value="">All Tags</option>
+          <option *ngFor="let tag of availableTags" [value]="tag">{{ tag }}</option>
+        </select>
+
+        <!-- Slots filter -->
+        <select 
+          class="filter-select"
+          [(ngModel)]="filters.hasSlots"
+          (ngModelChange)="applyFilters()">
+          <option value="">All Campaigns</option>
+          <option value="true">Available Slots</option>
+          <option value="false">Full</option>
+        </select>
+
+        <!-- Sort -->
+        <select 
+          class="filter-select"
+          [(ngModel)]="sortBy"
+          (ngModelChange)="applyFilters()">
+          <option value="title">Sort by Title</option>
+          <option value="priceAsc">Price: Low to High</option>
+          <option value="priceDesc">Price: High to Low</option>
+          <option value="level">Level</option>
+        </select>
+
+        <!-- Reset button -->
+        <button class="btn-reset" (click)="resetFilters()">Reset</button>
+      </div>
     </div>
 
     <!-- Loader -->
     <div *ngIf="isLoading" class="loading-state">
       <div class="parchment-card">
-  <p>Loading campaigns...</p>
+        <p>Loading campaigns...</p>
       </div>
     </div>
 
     <!-- Error state -->
     <div *ngIf="error" class="error-state">
       <div class="parchment-card">
-  <h3>Error loading</h3>
+        <h3>Error loading</h3>
         <p>{{ error }}</p>
-  <button (click)="loadCampaigns()" class="retry-btn">Retry</button>
+        <button (click)="loadCampaigns()" class="retry-btn">Retry</button>
       </div>
     </div>
 
     <!-- Empty state -->
-    <div *ngIf="!isLoading && !error && campaigns.length === 0" class="empty-state">
+    <div *ngIf="!isLoading && !error && filteredCampaigns.length === 0" class="empty-state">
       <div class="parchment-card">
-  <h3>No available campaigns</h3>
-  <p>There are no active campaigns available right now.</p>
+        <h3>No campaigns found</h3>
+        <p>Try adjusting your filters.</p>
       </div>
     </div>
 
     <!-- Campaigns grid -->
     <div class="cards-catalog">
       <app-game-card-catalog 
-        *ngFor="let game of campaigns; trackBy: trackByGameId" 
+        *ngFor="let game of filteredCampaigns; trackBy: trackByGameId" 
         [game]="game"
         [canEditOrAdmin]="isMasterOrAdmin()"
         (gameDeleted)="onGameDeleted($event)"

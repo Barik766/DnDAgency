@@ -55,6 +55,30 @@ namespace DnDAgency.Api.Controllers
             return Ok(catalog);
         }
 
+        [HttpGet("catalog/paged")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetCatalogPaged(
+        [FromQuery] string? search,
+        [FromQuery] string? tag,
+        [FromQuery] bool? hasSlots,
+        [FromQuery] string sortBy = "title",
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 12)
+        {
+            var filter = new CampaignFilterDto
+            {
+                Search = search,
+                Tag = tag,
+                HasSlots = hasSlots,
+                SortBy = sortBy,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+
+            var result = await _campaignService.GetCampaignCatalogFilteredAsync(filter);
+            return Ok(result);
+        }
+
         [HttpGet("upcoming-games")]
         [AllowAnonymous]
         public async Task<IActionResult> GetUpcomingGames()
@@ -65,7 +89,7 @@ namespace DnDAgency.Api.Controllers
 
         [HttpGet("{campaignId}/available-slots")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetAvailableTimeSlots(Guid campaignId,[FromQuery] DateTime date,[FromQuery] string roomType)
+        public async Task<IActionResult> GetAvailableTimeSlots(Guid campaignId, [FromQuery] DateTime date, [FromQuery] string roomType)
         {
             try
             {
@@ -157,8 +181,6 @@ namespace DnDAgency.Api.Controllers
             catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
         }
 
-        
-
         // ---------------- HELPERS ----------------
 
         private Guid GetCurrentUserId()
@@ -174,6 +196,4 @@ namespace DnDAgency.Api.Controllers
             return User.FindFirst(ClaimTypes.Role)?.Value ?? "Master";
         }
     }
-
-
 }

@@ -68,10 +68,14 @@ export const routes: Routes = [
         ]
       },
       {
+        path: 'about',
+        loadComponent: () => import('./features/about/about.component/about.component')
+          .then(m => m.AboutComponent)
+      },
+      {
         path: 'my-bookings',
         loadComponent: () => import('./features/bookings/my-bookings.component/my-bookings.component')
           .then(m => m.MyBookingsComponent)
-  // Add a guard here if authentication is required
       }
     ]
   },
