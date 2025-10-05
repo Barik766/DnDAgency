@@ -21,6 +21,10 @@ public class SlotConfig : IEntityTypeConfiguration<Slot>
                .HasForeignKey(b => b.SlotId)
                .OnDelete(DeleteBehavior.Cascade);
 
+        // Уникальный индекс: одна кампания не может иметь два слота на одно время
+        builder.HasIndex(s => new { s.CampaignId, s.StartTime })
+               .IsUnique();
+
         // Индекс для быстрого поиска слотов по времени
         builder.HasIndex(s => s.StartTime);
     }

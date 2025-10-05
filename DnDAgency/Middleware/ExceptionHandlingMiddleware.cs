@@ -1,5 +1,7 @@
 ﻿using System.Net;
 using System.Text.Json;
+using DnDAgency.Api.Middleware.Models;
+using DnDAgency.Domain.Exceptions;
 
 namespace DnDAgency.Api.Middleware
 {
@@ -7,11 +9,16 @@ namespace DnDAgency.Api.Middleware
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<ExceptionHandlingMiddleware> _logger;
+        private readonly IWebHostEnvironment _env;
 
-        public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
+        public ExceptionHandlingMiddleware(
+            RequestDelegate next,
+            ILogger<ExceptionHandlingMiddleware> logger,
+            IWebHostEnvironment env)
         {
             _next = next;
             _logger = logger;
+            _env = env;
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -22,54 +29,66 @@ namespace DnDAgency.Api.Middleware
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An unhandled exception occurred");
+                _logger.LogError(ex, "An unhandled exception occurred: {Message}", ex.Message);
                 await HandleExceptionAsync(context, ex);
             }
         }
 
-        private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
+        private async Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
             if (context.Response.HasStarted)
             {
+                _logger.LogWarning("Response has already started, cannot handle exception");
                 return;
             }
 
             context.Response.ContentType = "application/json";
 
-
-            var response = exception switch
+            var errorResponse = exception switch
             {
-                ArgumentException => new
+                PastSlotBookingException => new ErrorResponse
                 {
                     StatusCode = (int)HttpStatusCode.BadRequest,
-                    Message = exception.Message
+                    Message = "Cannot book slots in the past"
                 },
-                KeyNotFoundException => new
+                ArgumentException argEx => new ErrorResponse
+                {
+                    StatusCode = (int)HttpStatusCode.BadRequest,
+                    Message = argEx.Message
+                },
+                KeyNotFoundException => new ErrorResponse
                 {
                     StatusCode = (int)HttpStatusCode.NotFound,
                     Message = "Resource not found"
                 },
-                UnauthorizedAccessException => new
+                UnauthorizedAccessException => new ErrorResponse
                 {
                     StatusCode = (int)HttpStatusCode.Unauthorized,
-                    Message = "Unauthorized"
+                    Message = "Unauthorized access"
                 },
-                InvalidOperationException => new
+                InvalidOperationException invalidOp => new ErrorResponse
                 {
-                    StatusCode = (int)HttpStatusCode.Forbidden,
-                    Message = exception.Message 
+                    StatusCode = (int)HttpStatusCode.Conflict,
+                    Message = invalidOp.Message
                 },
-                _ => new
+                _ => new ErrorResponse
                 {
                     StatusCode = (int)HttpStatusCode.InternalServerError,
-                    Message = "An error occurred while processing your request"
+                    Message = "An error occurred while processing your request",
+                    Details = _env.IsDevelopment() ? exception.Message : null
                 }
             };
 
-            context.Response.StatusCode = response.StatusCode;
-            var jsonResponse = JsonSerializer.Serialize(response);
+            context.Response.StatusCode = errorResponse.StatusCode;
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+            };
+
+            var jsonResponse = JsonSerializer.Serialize(errorResponse, options);
             await context.Response.WriteAsync(jsonResponse);
         }
-
     }
 }
