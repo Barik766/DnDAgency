@@ -429,3 +429,4 @@ FodyWeavers.xsd
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
 /docker-compose.local.yml
+/EmailWorker/appsettings.Development.json
