@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DnDAgency.Infrastructure", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "..\Tests\Tests.csproj", "{D85FCC04-D37B-4717-B0CF-67014B71D1A4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmailWorker", "..\EmailWorker\EmailWorker.csproj", "{B623DFE4-5709-4299-AF82-77BE2F691483}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DnDAgency.EmailWorker", "..\DnDAgency.EmailWorker\DnDAgency.EmailWorker.csproj", "{58B976C1-E432-408D-86DE-D922DBA7DE25}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,10 +41,10 @@ Global
 		{D85FCC04-D37B-4717-B0CF-67014B71D1A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D85FCC04-D37B-4717-B0CF-67014B71D1A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D85FCC04-D37B-4717-B0CF-67014B71D1A4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B623DFE4-5709-4299-AF82-77BE2F691483}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B623DFE4-5709-4299-AF82-77BE2F691483}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B623DFE4-5709-4299-AF82-77BE2F691483}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B623DFE4-5709-4299-AF82-77BE2F691483}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58B976C1-E432-408D-86DE-D922DBA7DE25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58B976C1-E432-408D-86DE-D922DBA7DE25}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58B976C1-E432-408D-86DE-D922DBA7DE25}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58B976C1-E432-408D-86DE-D922DBA7DE25}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

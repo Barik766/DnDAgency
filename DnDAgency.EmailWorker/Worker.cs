@@ -1,8 +1,6 @@
 using DnDAgency.Application.Messages;
 using DnDAgency.EmailWorker.Services;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Hangfire;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
@@ -16,17 +14,20 @@ public class Worker : BackgroundService
     private readonly ILogger<Worker> _logger;
     private readonly IConfiguration _configuration;
     private readonly IEmailService _emailService;
+    private readonly IBackgroundJobClient _backgroundJobs;
     private IConnection? _connection;
     private IModel? _channel;
 
     public Worker(
         ILogger<Worker> logger,
         IConfiguration configuration,
-        IEmailService emailService)
+        IEmailService emailService,
+        IBackgroundJobClient backgroundJobs)
     {
         _logger = logger;
         _configuration = configuration;
         _emailService = emailService;
+        _backgroundJobs = backgroundJobs;
     }
 
 
@@ -91,7 +92,7 @@ public class Worker : BackgroundService
                     message.PlayersCount
                 );
 
-                // TODO: create reminder
+                ScheduleReminders(message);
 
                 _channel.BasicAck(eventArgs.DeliveryTag, multiple: false);
 
@@ -124,5 +125,69 @@ public class Worker : BackgroundService
         _connection?.Close();
 
         return base.StopAsync(cancellationToken);
+    }
+
+    private void ScheduleReminders(BookingConfirmationMessage message)
+    {
+        var now = DateTime.UtcNow;
+        var gameTime = message.StartTime;
+
+        // Rminder 30 days
+        var monthBefore = gameTime.AddDays(-30);
+        if (monthBefore > now)
+        {
+            _backgroundJobs.Schedule<ReminderService>(
+                service => service.SendMonthReminderAsync(
+                    message.BookingId,
+                    message.UserEmail,
+                    message.Username,
+                    message.CampaignTitle,
+                    message.StartTime
+                ),
+                monthBefore
+            );
+            _logger.LogInformation("Scheduled 30-day reminder for {Time}", monthBefore);
+        }
+
+        // reminder 3 days
+        var threeDaysBefore = gameTime.AddDays(-3);
+        if (threeDaysBefore > now)
+        {
+            _backgroundJobs.Schedule<ReminderService>(
+                service => service.SendThreeDayReminderAsync(
+                    message.BookingId,
+                    message.UserEmail,
+                    message.Username,
+                    message.CampaignTitle,
+                    message.StartTime
+                ),
+                threeDaysBefore
+            );
+            _logger.LogInformation("Scheduled 3-day reminder for {Time}", threeDaysBefore);
+        }
+
+        // reminder same day at 9:00 AM UTC
+        var gameDay = new DateTime(
+            gameTime.Year,
+            gameTime.Month,
+            gameTime.Day,
+            9, 0, 0,
+            DateTimeKind.Utc
+        );
+
+        if (gameDay > now)
+        {
+            _backgroundJobs.Schedule<ReminderService>(
+                service => service.SendSameDayReminderAsync(
+                    message.BookingId,
+                    message.UserEmail,
+                    message.Username,
+                    message.CampaignTitle,
+                    message.StartTime
+                ),
+                gameDay
+            );
+            _logger.LogInformation("Scheduled same-day reminder for {Time}", gameDay);
+        }
     }
 }

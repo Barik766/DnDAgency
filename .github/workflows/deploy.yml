@@ -9,6 +9,7 @@ env:
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
   BACKEND_IMAGE: barik766/dnd-backend
   FRONTEND_IMAGE: barik766/dnd-frontend
+  EMAILWORKER_IMAGE: barik766/dnd-emailworker
   AWS_REGION: eu-north-1
   EB_APPLICATION_NAME: dnd-agency
   EB_ENVIRONMENT_NAME: dnd-agency-env
@@ -36,6 +37,16 @@ jobs:
         tags: |
           ${{ env.BACKEND_IMAGE }}:latest
           ${{ env.BACKEND_IMAGE }}:${{ github.sha }}
+
+    - name: Build and push emailworker
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./DnDAgency.EmailWorker/Dockerfile
+        push: true
+        tags: |
+          ${{ env.EMAILWORKER_IMAGE }}:latest
+          ${{ env.EMAILWORKER_IMAGE }}:${{ github.sha }}
 
     - name: Build and push frontend
       uses: docker/build-push-action@v5

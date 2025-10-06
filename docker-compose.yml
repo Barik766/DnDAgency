@@ -12,6 +12,26 @@ services:
       interval: 10s
       timeout: 3s
       retries: 3
+    networks:
+      - dnd-network
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dnd-network
 
   backend:
     image: barik766/dnd-backend:latest
@@ -21,6 +41,10 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Host=${RDS_HOSTNAME};Port=${RDS_PORT};Database=${RDS_DB_NAME};Username=${RDS_USERNAME};Password=${RDS_PASSWORD}
       - ConnectionStrings__Redis=${REDIS_HOST:-redis:6379}
+      - RabbitMQ__Host=${RABBITMQ_HOST:-rabbitmq}
+      - RabbitMQ__Port=${RABBITMQ_PORT:-5672}
+      - RabbitMQ__Username=${RABBITMQ_USER:-guest}
+      - RabbitMQ__Password=${RABBITMQ_PASSWORD:-guest}
       - JwtSettings__Key=${JwtSettings__Key}
       - JwtSettings__Issuer=${JwtSettings__Issuer}
       - JwtSettings__Audience=${JwtSettings__Audience}
@@ -29,6 +53,33 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - dnd-network
+
+  emailworker:
+    image: barik766/dnd-emailworker:latest
+    ports:
+      - "5001:5001"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=${RDS_HOSTNAME};Port=${RDS_PORT};Database=${RDS_DB_NAME};Username=${RDS_USERNAME};Password=${RDS_PASSWORD}
+      - RabbitMQ__Host=${RABBITMQ_HOST:-rabbitmq}
+      - RabbitMQ__Port=${RABBITMQ_PORT:-5672}
+      - RabbitMQ__Username=${RABBITMQ_USER:-guest}
+      - RabbitMQ__Password=${RABBITMQ_PASSWORD:-guest}
+      - RabbitMQ__QueueName=booking-confirmations
+      - Email__SmtpHost=${EMAIL_SMTP_HOST}
+      - Email__SmtpPort=${EMAIL_SMTP_PORT}
+      - Email__SenderEmail=${EMAIL_SENDER}
+      - Email__SenderName=DnD Agency
+      - Email__Password=${EMAIL_PASSWORD}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - dnd-network
   
   frontend:
     image: barik766/dnd-frontend:v3
@@ -36,6 +87,13 @@ services:
       - "80:80"
     depends_on:
       - backend
+    networks:
+      - dnd-network
 
 volumes:
   redis-data:
+  rabbitmq-data:
+
+networks:
+  dnd-network:
+    driver: bridge
