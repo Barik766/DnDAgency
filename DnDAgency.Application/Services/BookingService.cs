@@ -5,6 +5,7 @@ using DnDAgency.Domain.Entities;
 using DnDAgency.Domain.Exceptions;
 using DnDAgency.Domain.Interfaces;
 using DnDAgency.Infrastructure.Interfaces;
+using DnDAgency.Application.Messages;
 
 namespace DnDAgency.Application.Services
 {
@@ -13,15 +14,18 @@ namespace DnDAgency.Application.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConflictCheckService _conflictCheckService;
         private readonly ICacheService _cacheService;
+        private readonly IMessagePublisher _messagePublisher;
 
         public BookingService(
             IUnitOfWork unitOfWork,
             IConflictCheckService conflictCheckService,
-            ICacheService cacheService)
+            ICacheService cacheService,
+            IMessagePublisher messagePublisher)
         {
             _unitOfWork = unitOfWork;
             _conflictCheckService = conflictCheckService;
             _cacheService = cacheService;
+            _messagePublisher = messagePublisher;
         }
 
         public async Task<BookingDto> CreateBookingAsync(Guid userId, Guid campaignId, DateTime startTime, int playersCount = 1)
@@ -116,7 +120,28 @@ namespace DnDAgency.Application.Services
 
                 await _unitOfWork.CommitTransactionAsync();
 
-                // Инвалидация кешей
+                try
+                {
+                    var message = new BookingConfirmationMessage
+                    {
+                        BookingId = booking.Id,
+                        UserId = userId,
+                        UserEmail = user.Email,
+                        Username = user.Username,
+                        CampaignTitle = campaign.Title,
+                        StartTime = startTime,
+                        PlayersCount = playersCount,
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    await _messagePublisher.PublishBookingConfirmationAsync(message);
+                }
+                catch (Exception ex)
+                {
+                    // TODO: logger
+                }
+
+
                 await _cacheService.RemoveAsync("upcoming_games");
                 await _cacheService.RemoveAsync("campaigns_catalog");
 

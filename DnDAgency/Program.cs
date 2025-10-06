@@ -15,6 +15,7 @@ using DnDAgency.Infrastructure.Services;
 using Microsoft.Extensions.FileProviders;
 using DnDAgency.Infrastructure.UnitOfWork;
 using Amazon.Extensions.NETCore.Setup;
+using DnDAgency.Infrastructure.Messaging;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -67,6 +68,7 @@ builder.Services.AddScoped<IMasterService, MasterService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IConflictCheckService, ConflictCheckService>();
 builder.Services.AddScoped<ICacheService, CacheService>();
+builder.Services.AddSingleton<IMessagePublisher, RabbitMqPublisher>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 

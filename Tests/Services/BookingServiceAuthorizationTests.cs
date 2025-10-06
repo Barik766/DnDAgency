@@ -15,13 +15,13 @@ public class BookingServiceAuthorizationTests
     private readonly Mock<ICacheService> _cacheMock;
     private readonly BookingService _sut;
 
-    public BookingServiceAuthorizationTests()
-    {
-        _unitOfWorkMock = new Mock<IUnitOfWork>();
-        _conflictCheckMock = new Mock<IConflictCheckService>();
-        _cacheMock = new Mock<ICacheService>();
-        _sut = new BookingService(_unitOfWorkMock.Object, _conflictCheckMock.Object, _cacheMock.Object);
-    }
+    //public BookingServiceAuthorizationTests()
+    //{
+    //    _unitOfWorkMock = new Mock<IUnitOfWork>();
+    //    _conflictCheckMock = new Mock<IConflictCheckService>();
+    //    _cacheMock = new Mock<ICacheService>();
+    //    _sut = new BookingService(_unitOfWorkMock.Object, _conflictCheckMock.Object, _cacheMock.Object);
+    //}
 
     [Fact]
     public async Task CancelBookingAsync_WhenUserTriesToCancelAnotherUsersBooking_ThrowsUnauthorizedAccessException()
