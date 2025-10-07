@@ -21,8 +21,118 @@
       ]
     },
     {
+      "name": "rabbitmq",
+      "image": "rabbitmq:3-management-alpine",
+      "essential": true,
+      "memory": 512,
+      "portMappings": [
+        {
+          "hostPort": 5672,
+          "containerPort": 5672
+        },
+        {
+          "hostPort": 15672,
+          "containerPort": 15672
+        }
+      ],
+      "environment": [
+        {
+          "name": "RABBITMQ_DEFAULT_USER",
+          "value": "guest"
+        },
+        {
+          "name": "RABBITMQ_DEFAULT_PASS",
+          "value": "guest"
+        }
+      ],
+      "mountPoints": [
+        {
+          "sourceVolume": "rabbitmq-data",
+          "containerPath": "/var/lib/rabbitmq"
+        }
+      ]
+    },
+    {
+      "name": "backend",
+      "image": "barik766/dnd-backend:__BACKEND_TAG__",
+      "essential": true,
+      "memory": 1024,
+      "portMappings": [
+        {
+          "hostPort": 5000,
+          "containerPort": 8080
+        }
+      ],
+      "links": ["redis", "rabbitmq"],
+      "environment": [
+        {
+          "name": "ASPNETCORE_ENVIRONMENT",
+          "value": "Production"
+        },
+        {
+          "name": "ConnectionStrings__Redis",
+          "value": "redis:6379"
+        },
+        {
+          "name": "RabbitMQ__Host",
+          "value": "rabbitmq"
+        },
+        {
+          "name": "RabbitMQ__Port",
+          "value": "5672"
+        },
+        {
+          "name": "RabbitMQ__Username",
+          "value": "guest"
+        },
+        {
+          "name": "RabbitMQ__Password",
+          "value": "guest"
+        }
+      ]
+    },
+    {
+      "name": "emailworker",
+      "image": "barik766/dnd-emailworker:__EMAILWORKER_TAG__",
+      "essential": false,
+      "memory": 512,
+      "portMappings": [
+        {
+          "hostPort": 5001,
+          "containerPort": 5001
+        }
+      ],
+      "links": ["rabbitmq"],
+      "environment": [
+        {
+          "name": "ASPNETCORE_ENVIRONMENT",
+          "value": "Production"
+        },
+        {
+          "name": "RabbitMQ__Host",
+          "value": "rabbitmq"
+        },
+        {
+          "name": "RabbitMQ__Port",
+          "value": "5672"
+        },
+        {
+          "name": "RabbitMQ__Username",
+          "value": "guest"
+        },
+        {
+          "name": "RabbitMQ__Password",
+          "value": "guest"
+        },
+        {
+          "name": "RabbitMQ__QueueName",
+          "value": "booking-confirmations"
+        }
+      ]
+    },
+    {
       "name": "frontend",
-      "image": "barik766/dnd-frontend:latest",
+      "image": "barik766/dnd-frontend:__FRONTEND_TAG__",
       "essential": true,
       "memory": 1024,
       "portMappings": [
@@ -32,25 +142,6 @@
         }
       ],
       "links": ["backend"]
-    },
-    {
-      "name": "backend",
-      "image": "barik766/dnd-backend:latest",
-      "essential": true,
-      "memory": 1024,
-      "portMappings": [
-        {
-          "hostPort": 5000,
-          "containerPort": 8080
-        }
-      ],
-      "links": ["redis"],
-      "environment": [
-        {
-          "name": "ConnectionStrings__Redis",
-          "value": "redis:6379"
-        }
-      ]
     }
   ],
   "volumes": [
@@ -58,6 +149,12 @@
       "name": "redis-data",
       "host": {
         "sourcePath": "/var/app/current/redis-data"
+      }
+    },
+    {
+      "name": "rabbitmq-data",
+      "host": {
+        "sourcePath": "/var/app/current/rabbitmq-data"
       }
     }
   ]
