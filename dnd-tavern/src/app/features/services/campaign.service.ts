@@ -17,7 +17,7 @@ interface ApiResponse<T> {
   providedIn: 'root'
 })
 export class CampaignService {
-  private readonly apiUrl = 'http://localhost:5195/api/Campaigns';
+  private readonly apiUrl = '/api/Campaigns';
 
   constructor(private http: HttpClient) {}
 

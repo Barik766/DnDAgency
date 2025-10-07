@@ -19,7 +19,7 @@ interface ApiResponse<T> {
   providedIn: 'root'
 })
 export class BookingService {
-  private readonly apiUrl = 'http://localhost:5195/api/Bookings';
+  private readonly apiUrl = '/api/Bookings';
 
   constructor(private http: HttpClient) {}
 
