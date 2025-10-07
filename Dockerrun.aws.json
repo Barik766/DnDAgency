@@ -5,7 +5,7 @@
       "name": "redis",
       "image": "redis:7-alpine",
       "essential": true,
-      "memory": 512,
+      "memory": 128,
       "portMappings": [
         {
           "hostPort": 6379,
@@ -23,16 +23,12 @@
     {
       "name": "rabbitmq",
       "image": "rabbitmq:3-management-alpine",
-      "essential": true,
-      "memory": 512,
+      "essential": false,
+      "memory": 256,
       "portMappings": [
         {
           "hostPort": 5672,
           "containerPort": 5672
-        },
-        {
-          "hostPort": 15672,
-          "containerPort": 15672
         }
       ],
       "environment": [
@@ -56,7 +52,7 @@
       "name": "backend",
       "image": "barik766/dnd-backend:__BACKEND_TAG__",
       "essential": true,
-      "memory": 1024,
+      "memory": 384,
       "portMappings": [
         {
           "hostPort": 5000,
@@ -88,39 +84,10 @@
       ]
     },
     {
-      "name": "emailworker",
-      "image": "barik766/dnd-emailworker:__EMAILWORKER_TAG__",
-      "essential": false,
-      "memory": 512,
-      "links": ["rabbitmq"],
-      "environment": [
-        {
-          "name": "ASPNETCORE_ENVIRONMENT",
-          "value": "Production"
-        },
-        {
-          "name": "RabbitMQ__Host",
-          "value": "rabbitmq"
-        },
-        {
-          "name": "RabbitMQ__Username",
-          "value": "guest"
-        },
-        {
-          "name": "RabbitMQ__Password",
-          "value": "guest"
-        },
-        {
-          "name": "RabbitMQ__QueueName",
-          "value": "booking-confirmations"
-        }
-      ]
-    },
-    {
       "name": "frontend",
       "image": "barik766/dnd-frontend:__FRONTEND_TAG__",
       "essential": true,
-      "memory": 1024,
+      "memory": 256,
       "portMappings": [
         {
           "hostPort": 80,
