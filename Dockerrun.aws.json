@@ -78,10 +78,6 @@
           "value": "rabbitmq"
         },
         {
-          "name": "RabbitMQ__Port",
-          "value": "5672"
-        },
-        {
           "name": "RabbitMQ__Username",
           "value": "guest"
         },
@@ -96,12 +92,6 @@
       "image": "barik766/dnd-emailworker:__EMAILWORKER_TAG__",
       "essential": false,
       "memory": 512,
-      "portMappings": [
-        {
-          "hostPort": 5001,
-          "containerPort": 5001
-        }
-      ],
       "links": ["rabbitmq"],
       "environment": [
         {
@@ -111,10 +101,6 @@
         {
           "name": "RabbitMQ__Host",
           "value": "rabbitmq"
-        },
-        {
-          "name": "RabbitMQ__Port",
-          "value": "5672"
         },
         {
           "name": "RabbitMQ__Username",
