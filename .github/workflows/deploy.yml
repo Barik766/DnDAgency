@@ -12,7 +12,7 @@ env:
   EMAILWORKER_IMAGE: barik766/dnd-emailworker
   AWS_REGION: eu-north-1
   EB_APPLICATION_NAME: dnd-agency
-  EB_ENVIRONMENT_NAME: dnd-agency-env
+  EB_ENVIRONMENT_NAME: ${{ secrets.AWS_EB_ENVIRONMENT_NAME }}
 
 jobs:
   build-and-push:
