@@ -1,99 +1,57 @@
 version: '3.8'
+
 services:
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
     command: redis-server --appendonly yes
     volumes:
       - redis-data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 3
-    networks:
-      - dnd-network
+    deploy:
+      resources:
+        limits:
+          memory: 128M
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
-    ports:
-      - "5672:5672"
-      - "15672:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - dnd-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
 
   backend:
-    image: barik766/dnd-backend:latest
+    image: barik766/dnd-backend:__BACKEND_TAG__
     ports:
       - "5000:8080"
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=Host=${RDS_HOSTNAME};Port=${RDS_PORT};Database=${RDS_DB_NAME};Username=${RDS_USERNAME};Password=${RDS_PASSWORD}
-      - ConnectionStrings__Redis=${REDIS_HOST:-redis:6379}
-      - RabbitMQ__Host=${RABBITMQ_HOST:-rabbitmq}
-      - RabbitMQ__Port=${RABBITMQ_PORT:-5672}
-      - RabbitMQ__Username=${RABBITMQ_USER:-guest}
-      - RabbitMQ__Password=${RABBITMQ_PASSWORD:-guest}
-      - JwtSettings__Key=${JwtSettings__Key}
-      - JwtSettings__Issuer=${JwtSettings__Issuer}
-      - JwtSettings__Audience=${JwtSettings__Audience}
-      - GoogleOAuth__ClientId=${GoogleOAuth__ClientId}
-      - GoogleOAuth__ClientSecret=${GoogleOAuth__ClientSecret}
     depends_on:
-      redis:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-    networks:
-      - dnd-network
+      - redis
+      - rabbitmq
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__Redis: redis:6379
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__Username: guest
+      RabbitMQ__Password: guest
+    deploy:
+      resources:
+        limits:
+          memory: 384M
 
-  emailworker:
-    image: barik766/dnd-emailworker:latest
-    ports:
-      - "5001:5001"
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=Host=${RDS_HOSTNAME};Port=${RDS_PORT};Database=${RDS_DB_NAME};Username=${RDS_USERNAME};Password=${RDS_PASSWORD}
-      - RabbitMQ__Host=${RABBITMQ_HOST:-rabbitmq}
-      - RabbitMQ__Port=${RABBITMQ_PORT:-5672}
-      - RabbitMQ__Username=${RABBITMQ_USER:-guest}
-      - RabbitMQ__Password=${RABBITMQ_PASSWORD:-guest}
-      - RabbitMQ__QueueName=booking-confirmations
-      - Email__SmtpHost=${EMAIL_SMTP_HOST}
-      - Email__SmtpPort=${EMAIL_SMTP_PORT}
-      - Email__SenderEmail=${EMAIL_SENDER}
-      - Email__SenderName=DnD Agency
-      - Email__Password=${EMAIL_PASSWORD}
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-    networks:
-      - dnd-network
-  
   frontend:
-    image: barik766/dnd-frontend:v3
+    image: barik766/dnd-frontend:__FRONTEND_TAG__
     ports:
       - "80:80"
     depends_on:
       - backend
-    networks:
-      - dnd-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
 
 volumes:
   redis-data:
   rabbitmq-data:
-
-networks:
-  dnd-network:
-    driver: bridge

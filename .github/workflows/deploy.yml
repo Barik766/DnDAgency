@@ -66,15 +66,14 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Update Dockerrun.aws.json with SHA tags
+    - name: Update docker-compose.yml with SHA tags
       run: |
-        sed -i "s/__BACKEND_TAG__/${{ github.sha }}/g" Dockerrun.aws.json
-        sed -i "s/__EMAILWORKER_TAG__/${{ github.sha }}/g" Dockerrun.aws.json
-        sed -i "s/__FRONTEND_TAG__/${{ github.sha }}/g" Dockerrun.aws.json
-        cat Dockerrun.aws.json
+        sed -i "s/__BACKEND_TAG__/${{ github.sha }}/g" docker-compose.yml
+        sed -i "s/__FRONTEND_TAG__/${{ github.sha }}/g" docker-compose.yml
+        cat docker-compose.yml
 
     - name: Generate deployment package
-      run: zip deploy.zip Dockerrun.aws.json
+      run: zip deploy.zip docker-compose.yml
 
     - name: Deploy to EB
       uses: einaregilsson/beanstalk-deploy@v22
