@@ -1,5 +1,5 @@
 export const AUTH_CONFIG = {
-  API_URL: 'http://localhost:5195/api/users',
+  API_URL: '/api/users',
   TOKEN_KEY: 'tavern_token',
   JWT_CLAIMS: {
     NameIdentifier: 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier',

@@ -13,7 +13,7 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class AuthApiService {
-  private readonly API_URL = 'http://localhost:5195/api/users';
+  private readonly API_URL = '/api/users'; 
 
   constructor(private http: HttpClient) {}
 
@@ -26,11 +26,11 @@ export class AuthApiService {
   }
 
   googleLoginWithCode(code: string): Observable<ApiResponse<AuthResponseData>> {
-  return this.http.post<ApiResponse<AuthResponseData>>(`${this.API_URL}/google-callback`, { 
-    code,
-    redirectUri: 'http://localhost:4200' 
-  });
-}
+    return this.http.post<ApiResponse<AuthResponseData>>(`${this.API_URL}/google-callback`, { 
+      code,
+      redirectUri: window.location.origin 
+    });
+  }
 
   register(userData: RegisterRequest): Observable<User> {
     return this.http.post<User>(`${this.API_URL}/register`, userData);

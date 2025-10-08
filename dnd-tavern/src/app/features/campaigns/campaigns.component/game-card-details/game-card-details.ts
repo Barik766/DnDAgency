@@ -73,7 +73,7 @@ export class GameCardDetails implements OnInit {
     return {
       ...data,
       imageUrl: data.imageUrl
-        ? `http://localhost:5195/${data.imageUrl}`
+        ? `/api/${data.imageUrl}` 
         : '/img/default-game.jpeg'
     };
   }

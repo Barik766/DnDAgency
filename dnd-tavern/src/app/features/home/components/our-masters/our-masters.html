@@ -18,7 +18,7 @@
           <div class="photo-container">
             <img
               *ngIf="master.photoUrl"
-              [src]="'http://localhost:5195/' + master.photoUrl"
+              [src]="'/api/' + master.photoUrl"
               [alt]="master.name"
               class="gm-photo">
             <div

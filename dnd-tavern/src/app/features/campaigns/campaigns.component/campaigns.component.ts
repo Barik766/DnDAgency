@@ -67,7 +67,7 @@ export class CampaignsComponent implements OnInit, OnDestroy {
       id: campaign.id,
       title: campaign.title,
       image: campaign.imageUrl 
-        ? `http://localhost:5195/${campaign.imageUrl}` 
+        ? `/api/${campaign.imageUrl}` 
         : '/img/default-game.jpeg',
       level: campaign.level,
       price: campaign.price,
@@ -82,7 +82,7 @@ export class CampaignsComponent implements OnInit, OnDestroy {
       id: updatedCampaign.id,
       title: updatedCampaign.title,
       image: updatedCampaign.image 
-        ? `http://localhost:5195/${updatedCampaign.image}` 
+        ? `/api/${updatedCampaign.image}` 
         : '/img/default-game.jpeg',
       level: updatedCampaign.level,
       price: updatedCampaign.price,

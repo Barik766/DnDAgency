@@ -56,12 +56,12 @@ export class UpcomingGames implements OnInit {
 
   private mapToGame(upcomingGame: UpcomingGame): Game {
     const startTime = new Date(upcomingGame.startTime);
-   
+  
     return {
       id: upcomingGame.campaignId,
       title: upcomingGame.campaignTitle,
       image: upcomingGame.campaignImageUrl
-        ? `http://localhost:5195/${upcomingGame.campaignImageUrl}`
+        ? `/api/${upcomingGame.campaignImageUrl}` 
         : '/img/default-game.jpeg',
       date: startTime.toLocaleDateString('en-US', {
         weekday: 'long',
