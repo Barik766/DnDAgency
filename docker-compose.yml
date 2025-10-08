@@ -33,7 +33,6 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__DefaultConnection: Host=${RDS_HOSTNAME};Port=${RDS_PORT};Database=${RDS_DB_NAME};Username=${RDS_USERNAME};Password=${RDS_PASSWORD}
       ConnectionStrings__Redis: redis:6379
       RabbitMQ__Host: rabbitmq
       RabbitMQ__Username: guest
