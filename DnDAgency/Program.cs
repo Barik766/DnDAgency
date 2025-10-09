@@ -28,6 +28,8 @@ if (!builder.Environment.IsDevelopment())
     });
 }
 
+Console.WriteLine("DnDAgency backend IMAGE BUILT AT: " + DateTime.UtcNow);
+
 // Add services to the container.
 builder.Services.AddControllers(options =>
 {
