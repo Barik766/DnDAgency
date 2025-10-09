@@ -29,8 +29,8 @@ namespace DnDAgency.Infrastructure.Configurations
                    .OnDelete(DeleteBehavior.Cascade);
 
             builder.Property(u => u.Role)
-                   .HasConversion<string>()
-                   .HasMaxLength(20);
+                   .HasConversion<int>()   
+                   .IsRequired();
         }
     }
 }
