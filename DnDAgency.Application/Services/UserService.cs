@@ -324,8 +324,11 @@ namespace DnDAgency.Application.Services
                 new(ClaimTypes.Role, user.Role.ToString())
             };
 
+            Console.WriteLine($"DEBUG JWT: user.Id={user.Id}, user.Role={user.Role}, user.RoleType={user.Role.GetType()}");
+
             var tokenDescriptor = new SecurityTokenDescriptor
             {
+
                 Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.UtcNow.AddMinutes(expiresMinutes),
                 Issuer = _configuration["JwtSettings:Issuer"],
