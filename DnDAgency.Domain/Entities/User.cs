@@ -12,7 +12,7 @@ namespace DnDAgency.Domain.Entities
         public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; private set; }
         public bool IsActive { get; private set; } = true;
-        public UserRole Role { get; private set; } = UserRole.Player;
+        public UserRole Role { get; set; } = UserRole.Player;
 
         // Профиль мастера (если есть)
         public Master? MasterProfile { get; private set; }

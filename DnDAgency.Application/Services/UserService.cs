@@ -312,6 +312,7 @@ namespace DnDAgency.Application.Services
 
         private string GenerateJwtToken(User user)
         {
+            Console.WriteLine($"DEBUG JWT: user.Id={user.Id}, user.Role={user.Role}, user.RoleType={user.Role.GetType()}, rawRoleInt={(int)user.Role}");
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_configuration["JwtSettings:Key"]!);
             var expiresMinutes = int.Parse(_configuration["JwtSettings:ExpiryMinutes"]!);
