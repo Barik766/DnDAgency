@@ -30,7 +30,7 @@ namespace DnDAgency.Api.Controllers
             return Ok(masters);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:guid}")]
         [AllowAnonymous]
         public async Task<IActionResult> GetById(Guid id)
         {
