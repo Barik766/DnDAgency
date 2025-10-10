@@ -16,6 +16,7 @@ using Microsoft.Extensions.FileProviders;
 using DnDAgency.Infrastructure.UnitOfWork;
 using Amazon.Extensions.NETCore.Setup;
 using DnDAgency.Infrastructure.Messaging;
+using Amazon.S3;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -73,13 +74,27 @@ builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddSingleton<IMessagePublisher, RabbitMqPublisher>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddSingleton<IFileStorageService>(
+        new LocalFileStorageService(
+            builder.Environment.WebRootPath,
+            builder.Environment.ContentRootPath
+        )
+    );
+}
+else
+{
+    builder.Services.AddAWSService<IAmazonS3>();
+    builder.Services.AddSingleton<IFileStorageService>(provider =>
+    {
+        var s3Client = provider.GetRequiredService<IAmazonS3>();
+        var bucketName = "dnd-agency-images";
+        return new S3FileStorageService(s3Client, bucketName);
+    });
+}
 
-builder.Services.AddSingleton<IFileStorageService>(
-    new LocalFileStorageService(
-        builder.Environment.WebRootPath,
-        builder.Environment.ContentRootPath
-    )
-);
+
 var googleClientId = builder.Configuration["GoogleOAuth:ClientId"];
 var googleClientSecret = builder.Configuration["GoogleOAuth:ClientSecret"];
 builder.Services.AddScoped<IGoogleOAuthService>(provider =>
@@ -173,7 +188,15 @@ if (app.Environment.IsDevelopment() || !app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseStaticFiles();
+var webRootPath = builder.Environment.WebRootPath;
+if (!string.IsNullOrEmpty(webRootPath) && Directory.Exists(webRootPath))
+{
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(webRootPath),
+        RequestPath = ""
+    });
+}
 
 // Custom middleware
 app.UseHttpsRedirection();
@@ -202,7 +225,7 @@ using (var scope = app.Services.CreateScope())
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
         logger.LogError(ex, "❌ An error occurred while migrating the database.");
-        throw; 
+        throw;
     }
 }
 

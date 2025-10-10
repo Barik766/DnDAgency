@@ -82,7 +82,7 @@ namespace DnDAgency.Api.Controllers
             }
         }
 
-        
+
         [HttpPut("{id}")]
         [Authorize(Roles = "Master,Admin")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateMasterDto request)
@@ -107,7 +107,7 @@ namespace DnDAgency.Api.Controllers
             }
         }
 
-        
+
         [HttpDelete("{id}")]
         [Authorize(Roles = "Master,Admin")]
         public async Task<IActionResult> Deactivate(Guid id)
@@ -165,12 +165,22 @@ namespace DnDAgency.Api.Controllers
         [AllowAnonymous]
         public IActionResult GetImage(Guid id)
         {
-            var filePath = Path.Combine(_webHostEnvironment.ContentRootPath, "wwwroot", "masters", $"{id}.jpg");
-            if (!System.IO.File.Exists(filePath))
-                return NotFound();
+            if (_webHostEnvironment.IsDevelopment())
+            {
+                var filePath = Path.Combine(_webHostEnvironment.WebRootPath, "masters", $"{id}.jpg");
+                if (!System.IO.File.Exists(filePath))
+                    return NotFound();
 
-            var fileStream = System.IO.File.OpenRead(filePath);
-            return File(fileStream, "image/jpeg");
+                var fileStream = System.IO.File.OpenRead(filePath);
+                return File(fileStream, "image/jpeg");
+            }
+            else
+            {
+                var bucketName = "dnd-agency-images";
+                var key = $"masters/{id}.jpg";
+                var url = $"https://{bucketName}.s3.amazonaws.com/{key}";
+                return Redirect(url);
+            }
         }
 
 

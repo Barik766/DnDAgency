@@ -77,21 +77,6 @@ export class CampaignsComponent implements OnInit, OnDestroy {
     };
   }
 
-  private mapUpdatedCampaignToCatalogGame(updatedCampaign: any): CatalogGame {
-    return {
-      id: updatedCampaign.id,
-      title: updatedCampaign.title,
-      image: updatedCampaign.image 
-        ? `/api/${updatedCampaign.image}` 
-        : '/img/default-game.jpeg',
-      level: updatedCampaign.level,
-      price: updatedCampaign.price,
-      tags: updatedCampaign.tags || [],
-      hasAvailableSlots: updatedCampaign.hasAvailableSlots ?? false,
-      isActive: updatedCampaign.isActive ?? false
-    };
-  }
-
   private loadAllTags() {
     // Загружаем все теги один раз для dropdown
     this.campaignService.getCampaignCatalog().subscribe({
