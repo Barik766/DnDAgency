@@ -112,7 +112,7 @@ namespace DnDAgency.Api.Controllers
 
         [HttpGet("{id}.jpg")]
         [AllowAnonymous]
-        public IActionResult GetImage(Guid id)
+        private IActionResult GetImage(Guid id)
         {
             if (_webHostEnvironment.IsDevelopment())
             {
@@ -127,7 +127,7 @@ namespace DnDAgency.Api.Controllers
             {
                 var bucketName = "dnd-agency-images";
                 var key = $"campaigns/{id}.jpg";
-                var url = $"https://{bucketName}.s3.amazonaws.com/{key}";
+                var url = $"https://{bucketName}.s3.eu-north-1.amazonaws.com/{key}";
                 return Redirect(url);
             }
         }

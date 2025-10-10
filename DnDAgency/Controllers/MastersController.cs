@@ -163,11 +163,11 @@ namespace DnDAgency.Api.Controllers
 
         [HttpGet("{id}.jpg")]
         [AllowAnonymous]
-        public IActionResult GetImage(Guid id)
+        private IActionResult GetImage(Guid id)
         {
             if (_webHostEnvironment.IsDevelopment())
             {
-                var filePath = Path.Combine(_webHostEnvironment.WebRootPath, "masters", $"{id}.jpg");
+                var filePath = Path.Combine(_webHostEnvironment.WebRootPath, "campaigns", $"{id}.jpg");
                 if (!System.IO.File.Exists(filePath))
                     return NotFound();
 
@@ -178,7 +178,7 @@ namespace DnDAgency.Api.Controllers
             {
                 var bucketName = "dnd-agency-images";
                 var key = $"masters/{id}.jpg";
-                var url = $"https://{bucketName}.s3.amazonaws.com/{key}";
+                var url = $"https://{bucketName}.s3.eu-north-1.amazonaws.com/{key}";
                 return Redirect(url);
             }
         }
