@@ -165,7 +165,7 @@ namespace DnDAgency.Api.Controllers
         [AllowAnonymous]
         public IActionResult GetImage(Guid id)
         {
-            var filePath = Path.Combine(_webHostEnvironment.WebRootPath, "masters", $"{id}.jpg");
+            var filePath = Path.Combine(_webHostEnvironment.ContentRootPath, "wwwroot", "masters", $"{id}.jpg");
             if (!System.IO.File.Exists(filePath))
                 return NotFound();
 

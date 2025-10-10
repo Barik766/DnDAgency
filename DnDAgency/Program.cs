@@ -173,15 +173,7 @@ if (app.Environment.IsDevelopment() || !app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-var webRootPath = builder.Environment.WebRootPath;
-if (!string.IsNullOrEmpty(webRootPath) && Directory.Exists(webRootPath))
-{
-    app.UseStaticFiles(new StaticFileOptions
-    {
-        FileProvider = new PhysicalFileProvider(webRootPath),
-        RequestPath = ""
-    });
-}
+app.UseStaticFiles();
 
 // Custom middleware
 app.UseHttpsRedirection();
