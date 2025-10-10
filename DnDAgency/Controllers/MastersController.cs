@@ -4,6 +4,7 @@ using DnDAgency.Application.Interfaces;
 using System.Security.Claims;
 using System.ComponentModel.DataAnnotations;
 using DnDAgency.Application.DTOs.MastersDTO;
+using Microsoft.AspNetCore.Hosting;
 
 namespace DnDAgency.Api.Controllers
 {
@@ -13,10 +14,12 @@ namespace DnDAgency.Api.Controllers
     public class MastersController : ControllerBase
     {
         private readonly IMasterService _masterService;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public MastersController(IMasterService masterService)
+        public MastersController(IMasterService masterService, IWebHostEnvironment webHostEnvironment)
         {
             _masterService = masterService;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         [HttpGet]
@@ -156,6 +159,18 @@ namespace DnDAgency.Api.Controllers
             await _masterService.AssignCampaignsAsync(id, dto.CampaignIds, currentUserId);
 
             return Ok(new { Message = "Campaigns assigned successfully" });
+        }
+
+        [HttpGet("{id}.jpg")]
+        [AllowAnonymous]
+        public IActionResult GetImage(Guid id)
+        {
+            var filePath = Path.Combine(_webHostEnvironment.WebRootPath, "masters", $"{id}.jpg");
+            if (!System.IO.File.Exists(filePath))
+                return NotFound();
+
+            var fileStream = System.IO.File.OpenRead(filePath);
+            return File(fileStream, "image/jpeg");
         }
 
 

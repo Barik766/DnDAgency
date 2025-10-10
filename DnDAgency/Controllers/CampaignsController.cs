@@ -5,6 +5,7 @@ using DnDAgency.Application.DTOs.CampaignsDTO;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using DnDAgency.Domain.Interfaces;
+using Microsoft.AspNetCore.Hosting;
 
 namespace DnDAgency.Api.Controllers
 {
@@ -15,11 +16,13 @@ namespace DnDAgency.Api.Controllers
     {
         private readonly ICampaignService _campaignService;
         private readonly IMasterRepository _masterRepository;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public CampaignsController(ICampaignService campaignService, IMasterRepository masterRepository)
+        public CampaignsController(ICampaignService campaignService, IMasterRepository masterRepository, IWebHostEnvironment webHostEnvironment)
         {
             _campaignService = campaignService;
             _masterRepository = masterRepository;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         // ---------------- PUBLIC ----------------
@@ -105,6 +108,18 @@ namespace DnDAgency.Api.Controllers
             {
                 return BadRequest(new { Success = false, Message = ex.Message });
             }
+        }
+
+        [HttpGet("{id}.jpg")]
+        [AllowAnonymous]
+        public IActionResult GetImage(Guid id)
+        {
+            var filePath = Path.Combine(_webHostEnvironment.WebRootPath, "campaigns", $"{id}.jpg");
+            if (!System.IO.File.Exists(filePath))
+                return NotFound();
+
+            var fileStream = System.IO.File.OpenRead(filePath);
+            return File(fileStream, "image/jpeg");
         }
 
         // ---------------- PRIVATE / MASTER / ADMIN ----------------
