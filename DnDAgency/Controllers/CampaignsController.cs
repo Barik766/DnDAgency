@@ -112,7 +112,7 @@ namespace DnDAgency.Api.Controllers
 
         [HttpGet("{id}.jpg")]
         [AllowAnonymous]
-        private IActionResult GetImage(Guid id)
+        public IActionResult GetImage(Guid id)
         {
             if (_webHostEnvironment.IsDevelopment())
             {

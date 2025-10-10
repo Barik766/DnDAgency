@@ -163,11 +163,11 @@ namespace DnDAgency.Api.Controllers
 
         [HttpGet("{id}.jpg")]
         [AllowAnonymous]
-        private IActionResult GetImage(Guid id)
+        public IActionResult GetImage(Guid id)
         {
             if (_webHostEnvironment.IsDevelopment())
             {
-                var filePath = Path.Combine(_webHostEnvironment.WebRootPath, "campaigns", $"{id}.jpg");
+                var filePath = Path.Combine(_webHostEnvironment.WebRootPath, "masters", $"{id}.jpg");
                 if (!System.IO.File.Exists(filePath))
                     return NotFound();
 
