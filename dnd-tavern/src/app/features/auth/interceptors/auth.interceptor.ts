@@ -1,7 +1,7 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, switchMap, tap } from 'rxjs/operators';
+import { catchError, switchMap } from 'rxjs/operators';
 import { throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 
@@ -26,12 +26,15 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     '/users/me',
     '/users/refresh-token',
     '/home',
-    '/api/masters',
     '/campaigns/id',
   ];
 
+  if (req.method === 'GET' && req.url.toLowerCase().includes('/api/masters')) {
+    return next(req);
+  }
+
   if (publicEndpoints.some(url => req.url.toLowerCase().includes(url.toLowerCase()))) {
-    return next(req); // просто пускаем без токена
+    return next(req);
   }
 
   const token = authService.getToken();
