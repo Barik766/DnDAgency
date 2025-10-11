@@ -161,26 +161,29 @@ namespace DnDAgency.Api.Controllers
             return Ok(new { Message = "Campaigns assigned successfully" });
         }
 
-        [HttpGet("{id}.jpg")]
+        [HttpGet("{id}.{ext}")]
         [AllowAnonymous]
-        public IActionResult GetImage(Guid id)
+        public IActionResult GetImage(Guid id, string ext)
         {
-            if (_webHostEnvironment.IsDevelopment())
-            {
-                var filePath = Path.Combine(_webHostEnvironment.WebRootPath, "masters", $"{id}.jpg");
-                if (!System.IO.File.Exists(filePath))
-                    return NotFound();
+            var allowedExt = new[] { "jpg", "jpeg", "png" };
+            ext = ext.ToLowerInvariant();
 
-                var fileStream = System.IO.File.OpenRead(filePath);
-                return File(fileStream, "image/jpeg");
-            }
-            else
+            if (!allowedExt.Contains(ext))
+                return BadRequest("Unsupported image extension.");
+
+            var filePath = Path.Combine(_webHostEnvironment.WebRootPath, "masters", $"{id}.{ext}");
+            if (!System.IO.File.Exists(filePath))
+                return NotFound();
+
+            var mimeType = ext switch
             {
-                var bucketName = "dnd-agency-images";
-                var key = $"masters/{id}.jpg";
-                var url = $"https://{bucketName}.s3.eu-north-1.amazonaws.com/{key}";
-                return Redirect(url);
-            }
+                "jpg" or "jpeg" => "image/jpeg",
+                "png" => "image/png",
+                _ => "application/octet-stream"
+            };
+
+            var fileStream = System.IO.File.OpenRead(filePath);
+            return File(fileStream, mimeType);
         }
 
 

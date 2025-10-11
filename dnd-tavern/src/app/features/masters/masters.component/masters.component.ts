@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Master } from '../../interfaces/master.interface';
 import { MasterService } from '../../services/master.service';
 import { Router } from '@angular/router';
+import { MasterCard } from '../../interfaces/masterCard.interface';
 
 @Component({
   selector: 'app-masters',
@@ -12,7 +13,7 @@ import { Router } from '@angular/router';
   styleUrl: './masters.component.scss'
 })
 export class MastersComponent implements OnInit {
-  masters: Master[] = [];
+  masters: MasterCard[] = []; // Измени тип
   isLoading = false;
   error: string | null = null;
   
@@ -30,20 +31,36 @@ export class MastersComponent implements OnInit {
    
     this.masterService.getAllMasters().subscribe({
       next: (masters) => {
-  this.masters = masters; // Show all masters
+        this.masters = masters.map(m => this.mapMasterToCard(m)); // Маппим всех
         this.isLoading = false;
         this.cdr.detectChanges();
       },
       error: (error) => {
         console.error('Error loading masters:', error);
-  this.error = 'Failed to load masters';
+        this.error = 'Failed to load masters';
         this.isLoading = false;
         this.cdr.detectChanges();
       }
     });
   }
 
-  onMasterClick(master: Master): void {
+  private mapMasterToCard(master: Master): MasterCard {
+    return {
+      id: master.id,
+      userId: master.userId,
+      name: master.name,
+      bio: master.bio,
+      isActive: master.isActive,
+      campaignCount: master.campaignCount,
+      averageRating: master.averageRating,
+      reviewCount: master.reviewCount,
+      photoUrl: master.photoUrl ? `${master.photoUrl}` : '/img/default-master.jpg',
+      createdAt: master.createdAt,
+      updatedAt: master.updatedAt
+    };
+  }
+
+  onMasterClick(master: MasterCard): void {
     this.router.navigate(['/masters', master.id]);
   }
 }

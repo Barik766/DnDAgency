@@ -1,7 +1,8 @@
 {
   "/api": {
-    "target": "http://localhost:5195",
+    "target": "http://host.docker.internal:5000",
     "secure": false,
-    "changeOrigin": true
+    "changeOrigin": true,
+    "logLevel": "debug"
   }
 }
