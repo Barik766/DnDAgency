@@ -110,6 +110,12 @@ namespace DnDAgency.Application.Services
             using var transaction = await _unitOfWork.BeginTransactionAsync();
             try
             {
+                // Добавьте валидацию, если SupportedRoomTypes обязателен
+                if (dto.SupportedRoomTypes == null || !dto.SupportedRoomTypes.Any())
+                {
+                    throw new ArgumentException("SupportedRoomTypes must contain at least one room type.");
+                }
+
                 List<Master> masters = new List<Master>();
 
                 if (role == "Master" && currentUserId.HasValue)
@@ -131,11 +137,17 @@ namespace DnDAgency.Application.Services
                     }
                 }
 
-                var rooms = await _unitOfWork.Campaigns.GetRoomsByIdsAsync(dto.RoomIds);
-                if (rooms.Count != dto.RoomIds.Count)
+                // Получение комнат по типам (как в UpdateAsync)
+                var roomIds = dto.SupportedRoomTypes.Any()
+                    ? (await _unitOfWork.Campaigns.GetRoomsByTypesAsync(dto.SupportedRoomTypes))
+                          .Select(r => r.Id).ToList()
+                    : new List<Guid>();
+
+                var rooms = await _unitOfWork.Campaigns.GetRoomsByIdsAsync(roomIds);
+                if (rooms.Count != roomIds.Count)
                 {
                     var foundIds = rooms.Select(r => r.Id).ToHashSet();
-                    var notFound = dto.RoomIds.Where(id => !foundIds.Contains(id)).ToList();
+                    var notFound = roomIds.Where(id => !foundIds.Contains(id)).ToList();
                     throw new KeyNotFoundException($"Rooms not found: {string.Join(", ", notFound)}");
                 }
 

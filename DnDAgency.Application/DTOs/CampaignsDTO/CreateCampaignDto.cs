@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
 
-
 public class CreateCampaignDto
 {
     public string Title { get; set; } = string.Empty;
@@ -8,7 +7,7 @@ public class CreateCampaignDto
     public decimal Price { get; set; }
     public IFormFile? ImageFile { get; set; }
     public int Level { get; set; }
-    public List<Guid> RoomIds { get; set; } = new();
+    public List<string> SupportedRoomTypes { get; set; } = new();  // Заменено с RoomIds на SupportedRoomTypes
     public int MaxPlayers { get; set; } = 8;
     public List<string> Tags { get; set; } = new();
     public int? DurationHours { get; set; }
@@ -16,4 +15,3 @@ public class CreateCampaignDto
     // Список мастеров для кампании. Админ может не указывать, мастер добавляется автоматически
     public List<Guid> MasterIds { get; set; } = new();
 }
-
