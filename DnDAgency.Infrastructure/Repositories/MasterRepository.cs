@@ -18,6 +18,7 @@ public class MasterRepository : GenericRepository<Master>, IMasterRepository
     {
         return await _dbSet
             .Include(m => m.Campaigns) // если хочешь подгружать связанные кампании
+            .Include(m => m.Reviews)
             .FirstOrDefaultAsync(m => m.UserId == userId);
     }
 

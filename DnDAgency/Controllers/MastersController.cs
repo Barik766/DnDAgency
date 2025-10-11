@@ -171,6 +171,9 @@ namespace DnDAgency.Api.Controllers
             if (!allowedExt.Contains(ext))
                 return BadRequest("Unsupported image extension.");
 
+            if (_webHostEnvironment.WebRootPath == null)
+                return BadRequest("Image storage not configured.");
+
             var filePath = Path.Combine(_webHostEnvironment.WebRootPath, "masters", $"{id}.{ext}");
             if (!System.IO.File.Exists(filePath))
                 return NotFound();
