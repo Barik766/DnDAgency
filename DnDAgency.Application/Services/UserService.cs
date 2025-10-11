@@ -34,27 +34,17 @@ namespace DnDAgency.Application.Services
 
         public async Task<UserDto> CreateAsync(string username, string email, string password)
         {
-            using var transaction = await _unitOfWork.BeginTransactionAsync();
-            try
-            {
-                var existingUser = await _unitOfWork.Users.GetByEmailAsync(email);
-                if (existingUser != null)
-                    throw new ArgumentException("User with this email already exists");
+            var existingUser = await _unitOfWork.Users.GetByEmailAsync(email);
+            if (existingUser != null)
+                throw new ArgumentException("User with this email already exists");
 
-                var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
-                var user = new User(username, email, hashedPassword);
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
+            var user = new User(username, email, hashedPassword);
 
-                await _unitOfWork.Users.AddAsync(user);
-                await _unitOfWork.SaveChangesAsync();
-                await _unitOfWork.CommitTransactionAsync();
-                
-                return MapToDto(user);
-            }
-            catch
-            {
-                await _unitOfWork.RollbackTransactionAsync();
-                throw;
-            }
+            await _unitOfWork.Users.AddAsync(user);
+            await _unitOfWork.SaveChangesAsync();
+
+            return MapToDto(user);
         }
 
         public async Task<List<UserDto>> GetAllAsync()

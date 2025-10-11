@@ -64,16 +64,17 @@ namespace DnDAgency.Application.Services
                 if (!user.IsMaster)
                     throw new ArgumentException("User must have Master role to create master profile");
 
-                var allMasters = await _unitOfWork.Masters.GetAllAsync();
-                if (allMasters.Any(m => m.UserId == userId))
-                    throw new ArgumentException("Master profile already exists for this user");
+                var existingMaster = await _unitOfWork.Masters.GetByUserIdAsync(userId);
+                if (existingMaster != null)
+                {
+                    await _unitOfWork.CommitTransactionAsync();
+                    return MapToDto(existingMaster);
+                }
 
-                var master = new Master(userId, user.Username, bio);
+                var master = user.CreateMasterProfile(bio);
                 await _unitOfWork.Masters.AddAsync(master);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitTransactionAsync();
-
-                await _cacheService.RemoveAsync("masters_all");
 
                 return MapToDto(master);
             }

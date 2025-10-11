@@ -27,4 +27,9 @@ public class MasterRepository : GenericRepository<Master>, IMasterRepository
             .Include(m => m.Campaigns) // если нужно
             .FirstOrDefaultAsync(m => m.Id == id);
     }
+
+    public async Task<bool> ExistsByUserIdAsync(Guid userId)
+    {
+        return await _dbSet.AnyAsync(m => m.UserId == userId);
+    }
 }
