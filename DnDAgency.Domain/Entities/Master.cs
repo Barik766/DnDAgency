@@ -27,6 +27,7 @@
             UserId = userId;
             Name = name;
             Bio = bio;
+            PhotoUrl = string.Empty;
         }
 
         public void UpdateBio(string bio)

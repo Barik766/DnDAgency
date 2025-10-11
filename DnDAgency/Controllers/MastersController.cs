@@ -163,7 +163,7 @@ namespace DnDAgency.Api.Controllers
 
         [HttpGet("{id}.{ext}")]
         [AllowAnonymous]
-        public IActionResult GetImage(Guid id, string ext)
+        public async Task<IActionResult> GetImage(Guid id, string ext)
         {
             var allowedExt = new[] { "jpg", "jpeg", "png" };
             ext = ext.ToLowerInvariant();
@@ -171,24 +171,38 @@ namespace DnDAgency.Api.Controllers
             if (!allowedExt.Contains(ext))
                 return BadRequest("Unsupported image extension.");
 
-            if (_webHostEnvironment.WebRootPath == null)
-                return BadRequest("Image storage not configured.");
-
-            var filePath = Path.Combine(_webHostEnvironment.WebRootPath, "masters", $"{id}.{ext}");
-            if (!System.IO.File.Exists(filePath))
-                return NotFound();
-
-            var mimeType = ext switch
+            try
             {
-                "jpg" or "jpeg" => "image/jpeg",
-                "png" => "image/png",
-                _ => "application/octet-stream"
-            };
+                var master = await _masterService.GetByIdAsync(id);
+                if (string.IsNullOrEmpty(master.PhotoUrl))
+                    return NotFound("Photo not found");
 
-            var fileStream = System.IO.File.OpenRead(filePath);
-            return File(fileStream, mimeType);
+                if (master.PhotoUrl.StartsWith("http"))
+                    return Redirect(master.PhotoUrl);
+
+                // Для локального (dev): служить из wwwroot, если PhotoUrl — относительный путь
+                if (_webHostEnvironment.WebRootPath == null)
+                    return BadRequest("Image storage not configured.");
+
+                var filePath = Path.Combine(_webHostEnvironment.WebRootPath, master.PhotoUrl);
+                if (!System.IO.File.Exists(filePath))
+                    return NotFound();
+
+                var mimeType = ext switch
+                {
+                    "jpg" or "jpeg" => "image/jpeg",
+                    "png" => "image/png",
+                    _ => "application/octet-stream"
+                };
+
+                var fileStream = System.IO.File.OpenRead(filePath);
+                return File(fileStream, mimeType);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound("Master not found");
+            }
         }
-
 
         private Guid GetCurrentUserId()
         {
