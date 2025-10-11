@@ -55,7 +55,7 @@ export class OurMastersComponent implements OnInit {
       campaignCount: master.campaignCount,
       averageRating: master.averageRating,
       reviewCount: master.reviewCount,
-      photoUrl: master.photoUrl ? `${master.photoUrl}` : '/img/default-master.jpg',
+      photoUrl: `/api/masters/${master.id}.png`, 
       createdAt: master.createdAt,
       updatedAt: master.updatedAt
     };

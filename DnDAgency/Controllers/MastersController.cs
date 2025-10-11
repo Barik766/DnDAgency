@@ -163,7 +163,7 @@ namespace DnDAgency.Api.Controllers
 
         [HttpGet("{id}.{ext}")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetImage(Guid id, string ext)
+        public IActionResult GetImage(Guid id, string ext)
         {
             var allowedExt = new[] { "jpg", "jpeg", "png" };
             ext = ext.ToLowerInvariant();
@@ -171,28 +171,9 @@ namespace DnDAgency.Api.Controllers
             if (!allowedExt.Contains(ext))
                 return BadRequest("Unsupported image extension.");
 
-            try
+            if (_webHostEnvironment.IsDevelopment())
             {
-                var master = await _masterService.GetByIdAsync(id);
-                if (string.IsNullOrEmpty(master.PhotoUrl))
-                    return NotFound("Photo not found");
-
-                if (master.PhotoUrl.StartsWith("http"))
-                    return Redirect(master.PhotoUrl);
-
-                // Для продакшена: редирект на S3, используя PhotoUrl как ключ
-                if (!_webHostEnvironment.IsDevelopment())
-                {
-                    var bucketName = "dnd-agency-images";
-                    var url = $"https://{bucketName}.s3.eu-north-1.amazonaws.com/{master.PhotoUrl}";
-                    return Redirect(url);
-                }
-
-                // Для локального (dev): служить из wwwroot
-                if (_webHostEnvironment.WebRootPath == null)
-                    return BadRequest("Image storage not configured.");
-
-                var filePath = Path.Combine(_webHostEnvironment.WebRootPath, master.PhotoUrl);
+                var filePath = Path.Combine(_webHostEnvironment.WebRootPath, "masters", $"{id}.{ext}");
                 if (!System.IO.File.Exists(filePath))
                     return NotFound();
 
@@ -206,9 +187,12 @@ namespace DnDAgency.Api.Controllers
                 var fileStream = System.IO.File.OpenRead(filePath);
                 return File(fileStream, mimeType);
             }
-            catch (KeyNotFoundException)
+            else
             {
-                return NotFound("Master not found");
+                var bucketName = "dnd-agency-images";
+                var key = $"masters/{id}.{ext}";
+                var url = $"https://{bucketName}.s3.eu-north-1.amazonaws.com/{key}";
+                return Redirect(url);
             }
         }
 

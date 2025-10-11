@@ -54,11 +54,11 @@ export class MastersComponent implements OnInit {
       campaignCount: master.campaignCount,
       averageRating: master.averageRating,
       reviewCount: master.reviewCount,
-      photoUrl: master.photoUrl ? `/api/${master.photoUrl}` : '/img/default-master.jpg',
+      photoUrl: `/api/masters/${master.id}.png`, 
       createdAt: master.createdAt,
       updatedAt: master.updatedAt
     };
-  }
+}
 
   onMasterClick(master: MasterCard): void {
     this.router.navigate(['/masters', master.id]);
