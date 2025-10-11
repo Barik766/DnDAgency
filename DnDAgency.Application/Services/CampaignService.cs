@@ -276,7 +276,7 @@ namespace DnDAgency.Application.Services
                 if (dto.SupportedRoomTypes != null)
                 {
                     var roomIds = dto.SupportedRoomTypes.Any()
-                        ? (await _unitOfWork.Campaigns.GetRoomsByTypesAsync(dto.SupportedRoomTypes))
+                        ? (await _unitOfWork.Campaigns.GetRoomsByTypesAsync(dto.SupportedRoomTypes.ToList())) 
                               .Select(r => r.Id).ToList()
                         : new List<Guid>();
 
