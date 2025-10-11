@@ -181,22 +181,33 @@ namespace DnDAgency.Api.Controllers
                     return Redirect(master.PhotoUrl);
 
                 // Для локального (dev): служить из wwwroot, если PhotoUrl — относительный путь
-                if (_webHostEnvironment.WebRootPath == null)
-                    return BadRequest("Image storage not configured.");
-
-                var filePath = Path.Combine(_webHostEnvironment.WebRootPath, master.PhotoUrl);
-                if (!System.IO.File.Exists(filePath))
-                    return NotFound();
-
-                var mimeType = ext switch
+                if (_webHostEnvironment.IsDevelopment())
                 {
-                    "jpg" or "jpeg" => "image/jpeg",
-                    "png" => "image/png",
-                    _ => "application/octet-stream"
-                };
+                    if (_webHostEnvironment.WebRootPath == null)
+                        return BadRequest("Image storage not configured.");
 
-                var fileStream = System.IO.File.OpenRead(filePath);
-                return File(fileStream, mimeType);
+                    var filePath = Path.Combine(_webHostEnvironment.WebRootPath, master.PhotoUrl);
+                    if (!System.IO.File.Exists(filePath))
+                        return NotFound();
+
+                    var mimeType = ext switch
+                    {
+                        "jpg" or "jpeg" => "image/jpeg",
+                        "png" => "image/png",
+                        _ => "application/octet-stream"
+                    };
+
+                    var fileStream = System.IO.File.OpenRead(filePath);
+                    return File(fileStream, mimeType);
+                }
+                else
+                {
+                    // Для продакшена: редирект на S3, предполагая ключ masters/{id}.{ext}
+                    var bucketName = "dnd-agency-images";
+                    var key = $"masters/{id}.{ext}";
+                    var url = $"https://{bucketName}.s3.eu-north-1.amazonaws.com/{key}";
+                    return Redirect(url);
+                }
             }
             catch (KeyNotFoundException)
             {
