@@ -139,7 +139,7 @@ namespace DnDAgency.Application.Services
 
                 // Получение комнат по типам (как в UpdateAsync)
                 var roomIds = dto.SupportedRoomTypes.Any()
-                    ? (await _unitOfWork.Campaigns.GetRoomsByTypesAsync(dto.SupportedRoomTypes))
+                    ? (await _unitOfWork.Campaigns.GetRoomsByTypesAsync(dto.SupportedRoomTypes.ToList()))
                           .Select(r => r.Id).ToList()
                     : new List<Guid>();
 

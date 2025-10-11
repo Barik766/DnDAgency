@@ -7,11 +7,9 @@ public class CreateCampaignDto
     public decimal Price { get; set; }
     public IFormFile? ImageFile { get; set; }
     public int Level { get; set; }
-    public List<string> SupportedRoomTypes { get; set; } = new();  // Заменено с RoomIds на SupportedRoomTypes
+    public string[] SupportedRoomTypes { get; set; } = Array.Empty<string>();  // Заменил List<string> на string[] — теперь биндинг сработает
     public int MaxPlayers { get; set; } = 8;
     public List<string> Tags { get; set; } = new();
     public int? DurationHours { get; set; }
-
-    // Список мастеров для кампании. Админ может не указывать, мастер добавляется автоматически
     public List<Guid> MasterIds { get; set; } = new();
 }
